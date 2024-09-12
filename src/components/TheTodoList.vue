@@ -53,6 +53,10 @@ const toggleDone = (item) => {
     
 }
 
+const togglePriority = (item, event) => {
+  event.preventDefault()
+  item.highPrio = !item.highPrio
+}
 </script>
 
 <template>
@@ -77,7 +81,7 @@ const toggleDone = (item) => {
 </form>
 <ul>
 <!-- Detta är en kommentar class bindings -->
-  <li v-for="(item,index) in items" @click="toggleDone(item)" :key="item.id" class="static-class" :class="{
+  <li v-for="(item,index) in items" @click="toggleDone(item)" @contextmenu="togglePriority(item, $event)" :key="item.id" class="static-class" :class="{
     strikeout: item.done,
     priority: item.highPrio,
   }">
