@@ -79,7 +79,7 @@ const toggleDone = (item) => {
 <!-- Detta är en kommentar class bindings -->
   <li v-for="(item,index) in items" @click="toggleDone(item)" :key="item.id" class="static-class" :class="{
     strikeout: item.done,
-    Priority: item.highPrio,
+    priority: item.highPrio,
   }">
   {{ item.label }}
   </li>
@@ -102,6 +102,13 @@ h3 {
 .header h1,
 .header h3 {
   text-align: center;
+}
+
+.strikeout {
+  text-decoration: line-through;
+}
+.priority {
+  color: #ff9100;
 }
 
 @media (min-width: 1024px) {
