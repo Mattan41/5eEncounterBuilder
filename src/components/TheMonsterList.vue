@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { store } from '../assets/store'
 
 // props
 defineProps({
@@ -11,17 +12,20 @@ defineProps({
 
 const header = ref('Monster List')
 const editing = ref(false)
-const monsters = ref([])
 const newMonster = ref("")
 const newMonsterInCombat = ref(false)
 
 const saveMonster = () => {
-  monsters.value.push({
-    id: monsters.value.length + 1,
+  const monster = {
+    id: store.monsters.length + 1,
     label: newMonster.value,
     done: false,
     inCombat: newMonsterInCombat.value
-  })
+  }
+  store.monsters.push(monster)
+  if (newMonsterInCombat.value) {
+    store.combatMonsters.push(monster)
+  }
   newMonster.value = ""
   newMonsterInCombat.value = false
 }
@@ -36,18 +40,26 @@ const toggleDone = (monster) => {
   monster.done = !monster.done
 }
 
+//push/remove monster on combatList
 const togglePriority = (monster, event) => {
   event.preventDefault()
   monster.inCombat = !monster.inCombat
+  if (monster.inCombat) {
+    store.combatMonsters.push(monster)
+  } else {
+    const index = store.combatMonsters.findIndex(m => m.id === monster.id)
+    if (index !== -1) {
+      store.combatMonsters.splice(index, 1)
+    }
+  }
 }
 
-// hämta 10 monster ifrån open%e.com
 onMounted(async () => {
   try {
     const response = await fetch('https://api.open5e.com/v1/monsters/?page=2')
     const data = await response.json()
-    monsters.value = data.results.slice(0,10).map((monster, index) => ({
-      id: monsters.value.length + index + 1,
+    store.monsters = data.results.slice(0, 10).map((monster, index) => ({
+      id: store.monsters.length + index + 1,
       label: monster.name,
       done: false,
       inCombat: false
@@ -79,7 +91,7 @@ onMounted(async () => {
     </button>
   </form>
   <ul>
-    <li v-for="(monster, index) in monsters" @click="toggleDone(monster)" @contextmenu="togglePriority(monster, $event)" :key="monster.id" class="static-class" :class="{
+    <li v-for="(monster, index) in store.monsters" @click="toggleDone(monster)" @contextmenu="togglePriority(monster, $event)" :key="monster.id" class="static-class" :class="{
       strikeout: monster.done,
       priority: monster.inCombat
     }">
@@ -96,26 +108,10 @@ h1 {
   top: -10px;
 }
 
-h3 {
-  font-size: 1.2rem;
-}
-
-.header h1,
-.header h3 {
-  text-align: center;
-}
-
 .strikeout {
   text-decoration: line-through;
 }
 .priority {
   color: #ff9100;
-}
-
-@media (min-width: 1024px) {
-  .header h1,
-  .header h3 {
-    text-align: left;
-  }
 }
 </style>

@@ -1,10 +1,12 @@
 <script setup>
 import TheMonsterList from './components/TheMonsterList.vue'
+import TheCombatList from './components/TheCombatList.vue'
 </script>
 
 <template>
   <main>
     <TheMonsterList addMonsterButton="add monster"/>
+    <TheCombatList/>
   </main>
 </template>
 
