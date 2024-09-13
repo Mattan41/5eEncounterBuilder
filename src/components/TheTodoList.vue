@@ -1,5 +1,5 @@
 <script setup>
-import {ref} from 'vue'
+import {ref, onMounted} from 'vue'
 
 // props
 
@@ -29,6 +29,7 @@ const items = ref([
 ])
 const newItem = ref("")
 const newItemHighPriority = ref(false)
+
 const saveItem = () => {
     items.value.push(
     {
@@ -57,6 +58,23 @@ const togglePriority = (item, event) => {
   event.preventDefault()
   item.highPrio = !item.highPrio
 }
+
+onMounted(async () => {
+  try {
+    const response = await fetch('https://jsonplaceholder.typicode.com/todos')
+    const data = await response.json()
+    items.value = data.map((item, index) => ({
+      id: items.value.length + index + 1,
+      label: item.title,
+      done: false,
+      highPrio: false
+    }))
+  } catch (error) {
+    console.log('Error fetching tasks', error)
+  }
+}
+
+);
 </script>
 
 <template>
@@ -71,7 +89,7 @@ const togglePriority = (item, event) => {
   </div> 
   <form class="add-item-form" v-if="editing" @submit.prevent="saveItem">
     <input v-model.trim="newItem" type="text" placeholder="add chore">
-    <label>
+    <label for="newChore">
         <input type="checkbox" v-model="newItemHighPriority">
         High Priority
     </label>
