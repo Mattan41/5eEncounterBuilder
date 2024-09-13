@@ -1,10 +1,10 @@
 <script setup>
-import TheTodoList from './components/TheTodoList.vue'
+import TheMonsterList from './components/TheMonsterList.vue'
 </script>
 
 <template>
   <main>
-    <TheTodoList changeButtonText="add chore"/>
+    <TheMonsterList addMonsterButton="add monster"/>
   </main>
 </template>
 
