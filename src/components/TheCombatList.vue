@@ -18,31 +18,33 @@ const togglePriority = (monster, event) => {
 </script>
 
 <template>
-  <div class="header">
-    <h1>Combat Monsters</h1>
-  </div>
-  <ul>
+  <div class="combat-container">
+    <h2>Combat Monsters</h2>
+  <ol>
     <li v-for="(monster, index) in store.combatMonsters" @click="toggleDone(monster)" @contextmenu="togglePriority(monster, $event)" :key="monster.id" class="static-class" :class="{
       strikeout: monster.done,
       priority: monster.inCombat
     }">
       {{ monster.label }}
     </li>
-  </ul>
+  </ol>
+</div>
 </template>
 
 <style scoped>
-h1 {
+h2 {
   font-weight: 500;
-  font-size: 2.6rem;
+  font-size: 1.6rem;
   position: relative;
   top: -10px;
+  color: crimson;
 }
 
 .strikeout {
   text-decoration: line-through;
+  color: unset;
 }
-.priority {
-  color: #ff9100;
+li{
+    color: crimson;
 }
 </style>

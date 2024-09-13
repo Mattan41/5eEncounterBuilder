@@ -71,6 +71,7 @@ onMounted(async () => {
 </script>
 
 <template>
+  <div class="monster-container">
   <div class="header">
     <h1>{{ header }}</h1>
     <button v-if="editing" class="btn" @click="doEdit(false)">
@@ -98,6 +99,7 @@ onMounted(async () => {
       {{ monster.label }}
     </li>
   </ul>
+</div>
 </template>
 
 <style scoped>
@@ -107,7 +109,9 @@ h1 {
   position: relative;
   top: -10px;
 }
-
+ul {
+  list-style: none;
+}
 .strikeout {
   text-decoration: line-through;
 }
