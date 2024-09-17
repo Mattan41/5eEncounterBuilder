@@ -110,11 +110,11 @@ onMounted(async () => {
         Save monster
       </button>
     </form>
-    <div class="monster-list-header">
+    <h3 class="monster-list-header">
       <span>Name</span>
       <span>CR</span>
       <span>HP</span>
-    </div>
+    </h3>
     <ul>
       <li v-for="(monster, index) in store.monsters" @click="togglePriority(monster, $event)"
           @contextmenu="togglePriority(monster, $event)" :key="monster.id" class="static-class"
@@ -135,7 +135,18 @@ h1 {
   top: -10px;
   color: #ff9100;
 }
+h3 {
+  font-weight: 500;
+  font-size: 1.6rem;
+  position: relative;
+  top: -10px;
+  color: #ff9100;
+  border-bottom: 2px solid #ccc;
+}
 
+button {
+  padding: 0.5rem;
+}
 ul {
   list-style: none;
   padding: 0;
@@ -152,29 +163,33 @@ ul {
   margin-bottom: 10px;
 }
 
-li {
+h3, li {
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem 0;
+  padding: 0.3rem 0;
   border-bottom: 1px solid #ccc;
 }
 
-li span {
+h3, li span {
   flex: 1;
   text-align: center;
 }
 
-li span:first-child {
+h3, li span:first-child {
   text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-li span:last-child {
+h3, li span:last-child {
   text-align: right;
 }
 
- .monster-container {
-   padding: 1rem;
- }
+.monster-container {
+  padding: 1rem;
+  border-radius: 8px;
+}
 
 .header {
   display: flex;
@@ -188,4 +203,23 @@ li span:last-child {
   gap: 0.5rem;
 }
 
+@media (min-width: 768px) {
+  .monster-container {
+    padding: 1.5rem;
+  }
+
+  li {
+    padding: 0.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .monster-container {
+    padding: 2rem;
+  }
+
+  li {
+    padding: 1rem;
+  }
+}
 </style>

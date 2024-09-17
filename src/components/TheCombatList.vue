@@ -44,7 +44,6 @@ const handleTouchEnd = (monster, event) => {
 }
 
 </script>
-
 <template>
   <div class="combat-container">
     <h2>Combat</h2>
@@ -57,9 +56,16 @@ const handleTouchEnd = (monster, event) => {
           :key="monster.combatId"
           class="static-class"
           :class="{ strikeout: monster.done, priority: monster.inCombat }">
-        <span>{{ monster.label }} (HP: {{ monster.hitPoints }})</span>
-        <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @keyup.enter="applyDamage(monster, monster.damage)" class="damage-input"/>
-        <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">Apply</button>
+        <div class="monster-info">
+          <div class="monster-header">
+            <span class="monster-label">{{ monster.label }}</span>
+            <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
+          </div>
+          <div class="damage-container">
+            <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @keyup.enter="applyDamage(monster, monster.damage)" class="damage-input"/>
+            <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">Apply</button>
+          </div>
+        </div>
       </li>
     </ol>
   </div>
@@ -81,7 +87,7 @@ h2 {
 
 li {
   color: crimson;
-  padding: 0.5rem;
+  padding: 0.3rem;
   border-bottom: 1px solid #504f4f;
 }
 
@@ -90,16 +96,75 @@ ul {
   padding: 0;
 }
 
+.monster-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.monster-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.monster-label {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monster-hp {
+  text-align: right;
+}
+
+.damage-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .damage-input {
   background-color: #333; /* Dark background */
   color: white;
   border: 1px solid #555;
   padding: 0.2rem;
   border-radius: 5px;
-  margin-left: 50px;
 }
+
 .apply-button {
   padding: 0.2rem;
   margin-left: 10px;
+}
+
+.combat-container {
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+@media (min-width: 768px) {
+  .combat-container {
+    padding: 1.5rem;
+  }
+
+  li {
+    padding: 0.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .combat-container {
+    padding: 2rem;
+  }
+
+  .monster-info {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  li {
+    padding: 1rem;
+  }
 }
 </style>
