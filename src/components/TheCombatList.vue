@@ -15,6 +15,9 @@ const togglePriority = (monster, event) => {
       const originalMonster = store.monsters.find(m => m.id === monster.id)
       if (originalMonster) {
         originalMonster.count--
+        if (originalMonster.count === 0) {
+          originalMonster.inCombat = false;
+        }
       }
     }
   }
