@@ -12,6 +12,7 @@ const togglePriority = (monster, event) => {
     const index = store.combatMonsters.findIndex(m => m.id === monster.id)
     if (index !== -1) {
       store.combatMonsters.splice(index, 1)
+      monster.count--
     }
   }
 }
