@@ -29,7 +29,7 @@ const saveMonster = () => {
   }
   store.monsters.push(monster)
   if (newMonsterInCombat.value) {
-    store.combatMonsters.push(JSON.parse(JSON.stringify(monster)))
+    store.combatMonsters.push({ ...monster, combatId: Date.now() })
     monster.count++
   }
   newMonster.value = ""
@@ -53,10 +53,10 @@ const togglePriority = (monster, event) => {
     if (monster.count === 0) {
       monster.inCombat = true
     }
-    store.combatMonsters.push(monster)
+    store.combatMonsters.push({ ...monster, combatId: Date.now() })
     monster.count++
   } else if (event.type === 'contextmenu') {
-    const index = store.combatMonsters.indexOf(monster)
+    const index = store.combatMonsters.findIndex(m => m.combatId === monster.combatId)
     if (index !== -1) {
       store.combatMonsters.splice(index, 1)
       monster.count--
@@ -85,6 +85,7 @@ onMounted(async () => {
   }
 })
 </script>
+
 
 <template>
   <div class="monster-container">
