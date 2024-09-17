@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { store } from '../assets/store'
+import {ref, onMounted} from 'vue'
+import {store} from '../assets/store'
 
 // props
 defineProps({
@@ -22,11 +22,13 @@ const saveMonster = () => {
     challengeRating: 0,
     hitPoints: 0,
     done: false,
-    inCombat: newMonsterInCombat.value
+    inCombat: newMonsterInCombat.value,
+    count: 0
   }
   store.monsters.push(monster)
   if (newMonsterInCombat.value) {
-    store.combatMonsters.push(monster)
+    store.combatMonsters.push(JSON.parse(JSON.stringify(monster)))
+    monster.count++
   }
   newMonster.value = ""
   newMonsterInCombat.value = false
@@ -42,16 +44,21 @@ const toggleDone = (monster) => {
   monster.done = !monster.done
 }
 
-//push/remove monster on combatList
+// Add/remove monster on combatList
 const togglePriority = (monster, event) => {
   event.preventDefault()
-  monster.inCombat = !monster.inCombat
-  if (monster.inCombat) {
-    store.combatMonsters.push(monster)
-  } else {
-    const index = store.combatMonsters.findIndex(m => m.id === monster.id)
+  if (event.type === 'click') {
+    monster.inCombat = true
+    store.combatMonsters.push(JSON.parse(JSON.stringify(monster)))
+    monster.count++
+  } else if (event.type === 'contextmenu') {
+    const index = store.combatMonsters.map(m => m.label).lastIndexOf(monster.label)
     if (index !== -1) {
       store.combatMonsters.splice(index, 1)
+      monster.count--
+      if (monster.count === 0) {
+        monster.inCombat = false
+      }
     }
   }
 }
@@ -66,7 +73,8 @@ onMounted(async () => {
       challengeRating: monster.challenge_rating,
       hitPoints: monster.hit_points,
       done: false,
-      inCombat: false
+      inCombat: false,
+      count: 0
     }))
   } catch (error) {
     console.log('Error fetching monsters', error)
@@ -76,41 +84,40 @@ onMounted(async () => {
 
 <template>
   <div class="monster-container">
-  <div class="header">
-    <h1>{{ header }}</h1>
-    <button v-if="editing" class="btn" @click="doEdit(false)">
-      Cancel
-    </button>
-    <button v-else class="btn btn-primary" @click="doEdit(true)">
-      {{ addMonsterButton }}
-    </button>
-  </div>
-  <form class="add-monsters-form" v-if="editing" @submit.prevent="saveMonster">
-    <input v-model.trim="newMonster" type="text" placeholder="add monster">
-    <label for="newMonster">
-      <input type="checkbox" v-model="newMonsterInCombat">
-      Active in combat
-    </label>
-    <button :disabled="newMonster.length < 5" class="btn btn-primary">
-      Save monster
-    </button>
-  </form>
+    <div class="header">
+      <h1>{{ header }}</h1>
+      <button v-if="editing" class="btn" @click="doEdit(false)">
+        Cancel
+      </button>
+      <button v-else class="btn btn-primary" @click="doEdit(true)">
+        {{ addMonsterButton }}
+      </button>
+    </div>
+    <form class="add-monsters-form" v-if="editing" @submit.prevent="saveMonster">
+      <input v-model.trim="newMonster" type="text" placeholder="add monster">
+      <label for="newMonster">
+        <input type="checkbox" v-model="newMonsterInCombat">
+        Active in combat
+      </label>
+      <button :disabled="newMonster.length < 5" class="btn btn-primary">
+        Save monster
+      </button>
+    </form>
     <div class="monster-list-header">
       <span>Name</span>
       <span>CR</span>
       <span>HP</span>
     </div>
-  <ul>
-    <li v-for="(monster, index) in store.monsters" @click="toggleDone(monster)" @contextmenu="togglePriority(monster, $event)" :key="monster.id" class="static-class" :class="{
-        strikeout: monster.done,
-        priority: monster.inCombat
-      }">
-      <span>{{ monster.label }}</span>
-      <span>{{ monster.challengeRating }}</span>
-      <span>{{ monster.hitPoints }}</span>
-    </li>
-  </ul>
-</div>
+    <ul>
+      <li v-for="(monster, index) in store.monsters" @click="togglePriority(monster, $event)"
+          @contextmenu="togglePriority(monster, $event)" :key="monster.id" class="static-class"
+          :class="{ priority: monster.inCombat }">
+        <span>({{ monster.count }}) {{monster.label }}</span>
+        <span>{{ monster.challengeRating }}</span>
+        <span>{{ monster.hitPoints }}</span>
+      </li>
+    </ul>
+  </div>
 </template>
 
 <style scoped>
@@ -120,21 +127,22 @@ h1 {
   position: relative;
   top: -10px;
 }
+
 ul {
   list-style: none;
 }
-.strikeout {
-  text-decoration: line-through;
-}
+
 .priority {
   color: #ff9100;
 }
+
 .monster-list-header {
   display: flex;
   justify-content: space-between;
   font-weight: bold;
   margin-bottom: 10px;
 }
+
 li {
   display: flex;
   justify-content: space-between;
