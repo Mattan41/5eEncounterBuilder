@@ -42,7 +42,7 @@ const handleTouchEnd = (monster, event) => {
     monster.swipedRight = true
     setTimeout(() => {
       togglePriority(monster, event)
-    }, 500) // Match the duration of the animation
+    }, 50) // Match the duration of the animation
   }
 }
 
@@ -50,7 +50,7 @@ const handleTouchEnd = (monster, event) => {
 <template>
   <div class="combat-container">
     <h2>Combat</h2>
-    <ol>
+    <ul>
       <transition-group name="swipe" tag="ol">
         <li v-for="(monster, index) in store.combatMonsters"
             @click="toggleDone(monster)"
@@ -72,7 +72,7 @@ const handleTouchEnd = (monster, event) => {
           </div>
         </li>
       </transition-group>
-    </ol>
+    </ul>
   </div>
 </template>
 
@@ -90,6 +90,12 @@ h2 {
   color: unset;
 }
 
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 li {
   color: crimson;
   padding: 0.5rem;
@@ -103,11 +109,6 @@ li {
 li:hover {
   background-color: #444;
   transform: translateY(-2px);
-}
-
-ul {
-  list-style: none;
-  padding: 0;
 }
 
 .monster-info {
