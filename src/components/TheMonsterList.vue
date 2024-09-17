@@ -19,6 +19,8 @@ const saveMonster = () => {
   const monster = {
     id: store.monsters.length + 1,
     label: newMonster.value,
+    challengeRating: 0,
+    hitPoints: 0,
     done: false,
     inCombat: newMonsterInCombat.value
   }
@@ -61,6 +63,8 @@ onMounted(async () => {
     store.monsters = data.results.slice(0, 10).map((monster, index) => ({
       id: store.monsters.length + index + 1,
       label: monster.name,
+      challengeRating: monster.challenge_rating,
+      hitPoints: monster.hit_points,
       done: false,
       inCombat: false
     }))
@@ -91,12 +95,19 @@ onMounted(async () => {
       Save monster
     </button>
   </form>
+    <div class="monster-list-header">
+      <span>Name</span>
+      <span>CR</span>
+      <span>HP</span>
+    </div>
   <ul>
     <li v-for="(monster, index) in store.monsters" @click="toggleDone(monster)" @contextmenu="togglePriority(monster, $event)" :key="monster.id" class="static-class" :class="{
-      strikeout: monster.done,
-      priority: monster.inCombat
-    }">
-      {{ monster.label }}
+        strikeout: monster.done,
+        priority: monster.inCombat
+      }">
+      <span>{{ monster.label }}</span>
+      <span>{{ monster.challengeRating }}</span>
+      <span>{{ monster.hitPoints }}</span>
     </li>
   </ul>
 </div>
@@ -117,5 +128,15 @@ ul {
 }
 .priority {
   color: #ff9100;
+}
+.monster-list-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+li {
+  display: flex;
+  justify-content: space-between;
 }
 </style>
