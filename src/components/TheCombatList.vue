@@ -15,17 +15,25 @@ const togglePriority = (monster, event) => {
     }
   }
 }
+const applyDamage = (monster, damage) => {
+  monster.hitPoints -= damage
+  if (monster.hitPoints <= 0) {
+    toggleDone(monster)
+  }
+}
 </script>
 
 <template>
   <div class="combat-container">
-    <h2>Combat Monsters</h2>
+    <h2>Combat</h2>
   <ol>
     <li v-for="(monster, index) in store.combatMonsters" @click="toggleDone(monster)" @contextmenu="togglePriority(monster, $event)" :key="monster.id" class="static-class" :class="{
       strikeout: monster.done,
       priority: monster.inCombat
     }">
-      {{ monster.label }}
+      <span>{{ monster.label }} (HP: {{ monster.hitPoints }})</span>
+      <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @keyup.enter="applyDamage(monster, monster.damage)"/>
+      <button @click.stop="applyDamage(monster, monster.damage)">Apply</button>
     </li>
   </ol>
 </div>
