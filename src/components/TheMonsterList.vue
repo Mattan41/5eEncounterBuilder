@@ -55,15 +55,6 @@ const togglePriority = (monster, event) => {
     }
     store.combatMonsters.push({ ...monster, combatId: Date.now() })
     monster.count++
-  } else if (event.type === 'contextmenu') {
-    const index = store.combatMonsters.findIndex(m => m.combatId === monster.combatId)
-    if (index !== -1) {
-      store.combatMonsters.splice(index, 1)
-      monster.count--
-      if (monster.count === 0) {
-        monster.inCombat = false
-      }
-    }
   }
 }
 
@@ -117,7 +108,7 @@ onMounted(async () => {
     </h3>
     <ul>
       <li v-for="(monster, index) in store.monsters" @click="togglePriority(monster, $event)"
-          @contextmenu="togglePriority(monster, $event)" :key="monster.id" class="static-class"
+          :key="monster.id" class="static-class"
           :class="{ priority: monster.inCombat }">
         <span>({{ monster.count }}) {{monster.label }}</span>
         <span>{{ monster.challengeRating }}</span>
