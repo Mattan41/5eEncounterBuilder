@@ -58,7 +58,7 @@ const handleTouchEnd = (monster, event) => {
           class="static-class"
           :class="{ strikeout: monster.done, priority: monster.inCombat }">
         <span>{{ monster.label }} (HP: {{ monster.hitPoints }})</span>
-        <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @input="validateNumberInput" @keyup.enter="applyDamage(monster, monster.damage)" class="damage-input"/>
+        <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @keyup.enter="applyDamage(monster, monster.damage)" class="damage-input"/>
         <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">Apply</button>
       </li>
     </ol>
