@@ -39,7 +39,10 @@ const handleTouchStart = (event) => {
 const handleTouchEnd = (monster, event) => {
   endX.value = event.changedTouches[0].clientX
   if (startX.value < endX.value - 50) { // Swipe right threshold
-    togglePriority(monster, event)
+    monster.swipedRight = true
+    setTimeout(() => {
+      togglePriority(monster, event)
+    }, 500) // Match the duration of the animation
   }
 }
 
@@ -48,25 +51,27 @@ const handleTouchEnd = (monster, event) => {
   <div class="combat-container">
     <h2>Combat</h2>
     <ol>
-      <li v-for="(monster, index) in store.combatMonsters"
-          @click="toggleDone(monster)"
-          @contextmenu="togglePriority(monster, $event)"
-          @touchstart="handleTouchStart"
-          @touchend="handleTouchEnd(monster, $event)"
-          :key="monster.combatId"
-          class="static-class"
-          :class="{ strikeout: monster.done, priority: monster.inCombat }">
-        <div class="monster-info">
-          <div class="monster-header">
-            <span class="monster-label">{{ monster.label }}</span>
-            <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
+      <transition-group name="swipe" tag="ol">
+        <li v-for="(monster, index) in store.combatMonsters"
+            @click="toggleDone(monster)"
+            @contextmenu="togglePriority(monster, $event)"
+            @touchstart="handleTouchStart"
+            @touchend="handleTouchEnd(monster, $event)"
+            :key="monster.combatId"
+            class="static-class"
+            :class="{ strikeout: monster.done, priority: monster.inCombat, 'swipe-right': monster.swipedRight }">
+          <div class="monster-info">
+            <div class="monster-header">
+              <span class="monster-label">{{ monster.label }}</span>
+              <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
+            </div>
+            <div class="damage-container">
+              <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @keyup.enter="applyDamage(monster, monster.damage)" class="damage-input"/>
+              <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">Apply</button>
+            </div>
           </div>
-          <div class="damage-container">
-            <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @keyup.enter="applyDamage(monster, monster.damage)" class="damage-input"/>
-            <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">Apply</button>
-          </div>
-        </div>
-      </li>
+        </li>
+      </transition-group>
     </ol>
   </div>
 </template>
@@ -153,6 +158,20 @@ ul {
   background-color: #222;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   margin: 1rem 0;
+}
+
+@keyframes swipeRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.swipe-right {
+  animation: swipeRight 0.5s forwards;
 }
 
 @media (min-width: 768px) {
