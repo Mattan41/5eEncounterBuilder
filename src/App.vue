@@ -22,16 +22,30 @@ main {
 }
 
 @media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
   main {
-    flex-direction: row;
-    justify-content: space-evenly;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
   }
 
+  li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #ccc;
+  }
+
+  li span {
+    flex: 1;
+    text-align: center;
+  }
+
+  li span:first-child {
+    text-align: left;
+  }
+
+  li span:last-child {
+    text-align: right;
+  }
 }
 </style>

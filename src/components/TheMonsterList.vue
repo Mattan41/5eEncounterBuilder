@@ -55,15 +55,6 @@ const togglePriority = (monster, event) => {
     }
     store.combatMonsters.push({ ...monster, combatId: Date.now() })
     monster.count++
-  } else if (event.type === 'contextmenu') {
-    const index = store.combatMonsters.findIndex(m => m.combatId === monster.combatId)
-    if (index !== -1) {
-      store.combatMonsters.splice(index, 1)
-      monster.count--
-      if (monster.count === 0) {
-        monster.inCombat = false
-      }
-    }
   }
 }
 
@@ -110,14 +101,14 @@ onMounted(async () => {
         Save monster
       </button>
     </form>
-    <div class="monster-list-header">
+    <h3 class="monster-list-header">
       <span>Name</span>
       <span>CR</span>
       <span>HP</span>
-    </div>
+    </h3>
     <ul>
       <li v-for="(monster, index) in store.monsters" @click="togglePriority(monster, $event)"
-          @contextmenu="togglePriority(monster, $event)" :key="monster.id" class="static-class"
+          :key="monster.id" class="static-class"
           :class="{ priority: monster.inCombat }">
         <span>({{ monster.count }}) {{monster.label }}</span>
         <span>{{ monster.challengeRating }}</span>
@@ -133,10 +124,23 @@ h1 {
   font-size: 2.6rem;
   position: relative;
   top: -10px;
+  color: #ff9100;
+}
+h3 {
+  font-weight: 500;
+  font-size: 1.6rem;
+  position: relative;
+  top: -10px;
+  color: #ff9100;
+  border-bottom: 2px solid #ccc;
 }
 
+button {
+  padding: 0.5rem;
+}
 ul {
   list-style: none;
+  padding: 0;
 }
 
 .priority {
@@ -149,11 +153,37 @@ ul {
   font-weight: bold;
   margin-bottom: 10px;
 }
+.monster-list-header span:first-child {
+  flex-grow: 2; /* Increase space for the monster name */
+  text-align: left;
+}
+
+.monster-list-header span:nth-child(2) {
+  flex-grow: 1;
+  margin-left: auto; /* Push CR to the right */
+  padding-left: 1rem; /* Optional: Add padding for better spacing */
+  text-align: center;
+}
+
+.monster-list-header span:last-child {
+  flex-grow: 1;
+  text-align: right;
+}
 
 li {
   display: flex;
   justify-content: space-between;
-  padding: 5px 0;
+  padding: 0.5rem;
+  border-bottom: 1px solid #444;
+  background-color: #333;
+  border-radius: 5px;
+  margin-bottom: 0.5rem;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+li:hover {
+  background-color: #444;
+  transform: translateY(-2px);
 }
 
 li span {
@@ -163,9 +193,65 @@ li span {
 
 li span:first-child {
   text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-grow: 2; /* Increase space for the monster name */
+}
+
+li span:nth-child(2) {
+  flex-grow: 1;
+  margin-left: 1rem; /* Adjust the margin to move CR to the right */
 }
 
 li span:last-child {
   text-align: right;
+}
+
+.monster-container {
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #222;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin: 1rem 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-monsters-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.add-monsters-form input {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #555;
+  background-color: #444;
+  color: white;
+}
+
+@media (min-width: 768px) {
+  .monster-container {
+    padding: 1.5rem;
+  }
+
+  li {
+    padding: 0.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .monster-container {
+    padding: 2rem;
+  }
+
+  li {
+    padding: 1rem;
+  }
 }
 </style>
