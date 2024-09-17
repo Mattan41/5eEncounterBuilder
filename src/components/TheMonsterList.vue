@@ -137,6 +137,7 @@ h1 {
 
 ul {
   list-style: none;
+  padding: 0;
 }
 
 .priority {
@@ -153,7 +154,8 @@ ul {
 li {
   display: flex;
   justify-content: space-between;
-  padding: 5px 0;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #ccc;
 }
 
 li span {
@@ -167,5 +169,39 @@ li span:first-child {
 
 li span:last-child {
   text-align: right;
+}
+
+ .monster-container {
+   padding: 1rem;
+ }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-monsters-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:disabled {
+  background-color: #007bff;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
