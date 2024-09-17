@@ -162,33 +162,67 @@ ul {
   font-weight: bold;
   margin-bottom: 10px;
 }
-
-h3, li {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.3rem 0;
-  border-bottom: 1px solid #ccc;
+.monster-list-header span:first-child {
+  flex-grow: 2; /* Increase space for the monster name */
+  text-align: left;
 }
 
-h3, li span {
+.monster-list-header span:nth-child(2) {
+  flex-grow: 1;
+  margin-left: auto; /* Push CR to the right */
+  padding-left: 1rem; /* Optional: Add padding for better spacing */
+  text-align: center;
+}
+
+.monster-list-header span:last-child {
+  flex-grow: 1;
+  text-align: right;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-bottom: 1px solid #444;
+  background-color: #333;
+  border-radius: 5px;
+  margin-bottom: 0.5rem;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+li:hover {
+  background-color: #444;
+  transform: translateY(-2px);
+}
+
+li span {
   flex: 1;
   text-align: center;
 }
 
-h3, li span:first-child {
+li span:first-child {
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-grow: 2; /* Increase space for the monster name */
 }
 
-h3, li span:last-child {
+li span:nth-child(2) {
+  flex-grow: 1;
+  margin-left: 1rem; /* Adjust the margin to move CR to the right */
+}
+
+li span:last-child {
   text-align: right;
 }
 
 .monster-container {
   padding: 1rem;
   border-radius: 8px;
+  background-color: #222;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin: 1rem 0;
 }
 
 .header {
@@ -201,6 +235,13 @@ h3, li span:last-child {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+.add-monsters-form input {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #555;
+  background-color: #444;
+  color: white;
 }
 
 @media (min-width: 768px) {

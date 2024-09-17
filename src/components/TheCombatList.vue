@@ -89,14 +89,14 @@ li {
   color: crimson;
   padding: 0.5rem;
   border-bottom: 1px solid #504f4f;
-  background-color: #1e1e1e;
+  background-color:  #333;
   border-radius: 5px;
   margin-bottom: 0.5rem;
   transition: background-color 0.3s, transform 0.3s;
 }
 
 li:hover {
-  background-color: #2c2c2c;
+  background-color: #444;
   transform: translateY(-2px);
 }
 
@@ -135,7 +135,7 @@ ul {
 }
 
 .damage-input {
-  background-color: #333; /* Dark background */
+  background-color: #444; /* Dark background */
   color: white;
   border: 1px solid #555;
   padding: 0.4rem;
@@ -150,6 +150,8 @@ ul {
 .combat-container {
   padding: 1rem;
   border-radius: 8px;
+  background-color: #222;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   margin: 1rem 0;
 }
 
@@ -178,7 +180,7 @@ ul {
 
   .monster-header {
     display: flex;
-    gap: 1rem; /* Adjust the gap as needed */
+    gap: 1rem;
   }
 
   .damage-container {
