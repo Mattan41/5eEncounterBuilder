@@ -87,8 +87,17 @@ h2 {
 
 li {
   color: crimson;
-  padding: 0.3rem;
+  padding: 0.5rem;
   border-bottom: 1px solid #504f4f;
+  background-color: #1e1e1e;
+  border-radius: 5px;
+  margin-bottom: 0.5rem;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+li:hover {
+  background-color: #2c2c2c;
+  transform: translateY(-2px);
 }
 
 ul {
@@ -116,6 +125,7 @@ ul {
 
 .monster-hp {
   text-align: right;
+  white-space: nowrap;
 }
 
 .damage-container {
@@ -128,18 +138,19 @@ ul {
   background-color: #333; /* Dark background */
   color: white;
   border: 1px solid #555;
-  padding: 0.2rem;
+  padding: 0.4rem;
   border-radius: 5px;
 }
 
 .apply-button {
-  padding: 0.2rem;
+  padding: 0.4rem;
   margin-left: 10px;
 }
 
 .combat-container {
   padding: 1rem;
   border-radius: 8px;
+  margin: 1rem 0;
 }
 
 @media (min-width: 768px) {
@@ -148,7 +159,7 @@ ul {
   }
 
   li {
-    padding: 0.5rem;
+    padding: 1rem;
   }
 }
 
@@ -160,6 +171,19 @@ ul {
   .monster-info {
     display: flex;
     flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .monster-header {
+    display: flex;
+    gap: 1rem; /* Adjust the gap as needed */
+  }
+
+  .damage-container {
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
   }
 
