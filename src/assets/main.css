@@ -15,6 +15,26 @@ a,
   padding: 3px;
 }
 
+button {
+  background-color: #8B0000; /* Dark red */
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #5A0000; /* Darker red */
+}
+
+button:disabled {
+  background-color: #8B0000;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (hover: hover) {
   a:hover {
     background-color: hsla(160, 100%, 37%, 0.2);

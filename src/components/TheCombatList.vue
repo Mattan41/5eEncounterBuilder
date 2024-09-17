@@ -28,9 +28,8 @@ const togglePriority = (monster, event) => {
 
 const applyDamage = (monster, damage) => {
   monster.hitPoints -= damage
-  if (monster.hitPoints <= 0) {
-    toggleDone(monster)
-  }
+  monster.done = monster.hitPoints <= 0
+  monster.damage = null // Reset the input field
 }
 
 const handleTouchStart = (event) => {
@@ -59,8 +58,8 @@ const handleTouchEnd = (monster, event) => {
           class="static-class"
           :class="{ strikeout: monster.done, priority: monster.inCombat }">
         <span>{{ monster.label }} (HP: {{ monster.hitPoints }})</span>
-        <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @keyup.enter="applyDamage(monster, monster.damage)"/>
-        <button @click.stop="applyDamage(monster, monster.damage)">Apply</button>
+        <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @input="validateNumberInput" @keyup.enter="applyDamage(monster, monster.damage)" class="damage-input"/>
+        <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">Apply</button>
       </li>
     </ol>
   </div>
@@ -91,4 +90,16 @@ ul {
   padding: 0;
 }
 
+.damage-input {
+  background-color: #333; /* Dark background */
+  color: white;
+  border: 1px solid #555;
+  padding: 0.2rem;
+  border-radius: 5px;
+  margin-left: 50px;
+}
+.apply-button {
+  padding: 0.2rem;
+  margin-left: 10px;
+}
 </style>

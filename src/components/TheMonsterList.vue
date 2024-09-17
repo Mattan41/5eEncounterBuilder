@@ -133,6 +133,7 @@ h1 {
   font-size: 2.6rem;
   position: relative;
   top: -10px;
+  color: #ff9100;
 }
 
 ul {
@@ -187,21 +188,4 @@ li span:last-child {
   gap: 0.5rem;
 }
 
-.btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-primary:disabled {
-  background-color: #007bff;
-  opacity: 0.6;
-  cursor: not-allowed;
-}
 </style>
