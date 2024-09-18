@@ -88,8 +88,8 @@ h2 {
   font-size: 4rem;
   position: relative;
   top: -10px;
-  color: crimson;
-  border-bottom: 3px solid crimson; 
+  color: #8B0000;
+  border-bottom: 3px solid #8B0000; 
   animation: pulsate 3s infinite; 
 }
 
@@ -105,7 +105,7 @@ ol {
 }
 
 li {
-  color: crimson;
+  color: #8B0000;
   padding: 0.5rem;
   border-bottom: 1px solid #504f4f;
   background-color:  #333;

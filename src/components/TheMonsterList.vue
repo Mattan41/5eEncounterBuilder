@@ -33,7 +33,7 @@ const saveMonster = () => {
     monster.count++
   }
   newMonster.value = ""
-  newMonsterHP.value = 0
+  newMonsterHP.value = null
   newMonsterCR.value = ""
   newMonsterInCombat.value = false
 }
