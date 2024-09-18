@@ -49,8 +49,8 @@ const handleTouchEnd = (monster, event) => {
 </script>
 <template>
   <div class="combat-container">
-    <h2>Combat</h2>
-    <ul>
+    <h2>Combat!</h2>
+    <ol>
       <transition-group name="swipe" tag="ol">
         <li v-for="(monster, index) in store.combatMonsters"
             @click="toggleDone(monster)"
@@ -72,17 +72,25 @@ const handleTouchEnd = (monster, event) => {
           </div>
         </li>
       </transition-group>
-    </ul>
+    </ol>
   </div>
 </template>
 
 <style scoped>
+@keyframes pulsate {
+  0% { border-color: #ff9100; }
+  50% { border-color: #27ae60; }
+  100% { border-color: #ff9100; }
+}
+
 h2 {
   font-weight: 500;
-  font-size: 1.6rem;
+  font-size: 4rem;
   position: relative;
   top: -10px;
   color: crimson;
+  border-bottom: 3px solid crimson; 
+  animation: pulsate 3s infinite; 
 }
 
 .strikeout {
@@ -90,7 +98,7 @@ h2 {
   color: unset;
 }
 
-ul {
+ol {
   list-style: none;
   padding: 0;
   margin: 0;
