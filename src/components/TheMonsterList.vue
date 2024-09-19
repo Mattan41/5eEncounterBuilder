@@ -62,7 +62,7 @@ onMounted(async () => {
   try {
     const response = await fetch('https://api.open5e.com/v1/monsters/?page=2')
     const data = await response.json()
-    store.monsters = data.results.slice(0, 10).map((monster, index) => ({
+    store.monsters = data.results.slice(20, 30).map((monster, index) => ({
       id: store.monsters.length + index + 1,
       label: monster.name,
       challengeRating: parseFloat(monster.challenge_rating),

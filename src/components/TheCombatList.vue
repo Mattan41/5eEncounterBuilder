@@ -77,10 +77,11 @@ const handleTouchEnd = (monster, event) => {
 </template>
 
 <style scoped>
+
 @keyframes pulsate {
-  0% { border-color: #ff9100; }
-  50% { border-color: #27ae60; }
-  100% { border-color: #ff9100; }
+  0% { border-color: #8B0000; }
+  50% { border-color: #4B0082; }
+  100% { border-color: #8B0000; }
 }
 
 h2 {
@@ -88,9 +89,9 @@ h2 {
   font-size: 4rem;
   position: relative;
   top: -10px;
-  color: #8B0000;
-  border-bottom: 3px solid #8B0000; 
-  animation: pulsate 3s infinite; 
+  color: #FFD700;
+  border-bottom: 3px solid #8B0000;
+  animation: pulsate 3s infinite;
 }
 
 .strikeout {
@@ -105,7 +106,7 @@ ol {
 }
 
 li {
-  color: #8B0000;
+  color: #FFD700; /* Ljusare gul färg för bättre kontrast */
   padding: 0.5rem;
   border-bottom: 1px solid #504f4f;
   background-color:  #333;
