@@ -11,9 +11,6 @@ import TheCombatList from './components/TheCombatList.vue'
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-}
 
 main {
   display: flex;
@@ -28,24 +25,5 @@ main {
     gap: 2rem;
   }
 
-  li {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #ccc;
-  }
-
-  li span {
-    flex: 1;
-    text-align: center;
-  }
-
-  li span:first-child {
-    text-align: left;
-  }
-
-  li span:last-child {
-    text-align: right;
-  }
 }
 </style>
