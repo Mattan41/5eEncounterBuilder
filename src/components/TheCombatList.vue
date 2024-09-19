@@ -1,5 +1,5 @@
 <script setup>
-import { store } from '../assets/store'
+import { store } from '../store.js'
 import { ref } from 'vue'
 
 const startX = ref(0)
@@ -8,7 +8,7 @@ const toggleDone = (monster) => {
   monster.done = !monster.done
 }
 
-const togglePriority = (monster, event) => {
+const toggleInCombat = (monster, event) => {
   event.preventDefault()
   monster.inCombat = !monster.inCombat
   if (!monster.inCombat) {
@@ -41,7 +41,7 @@ const handleTouchEnd = (monster, event) => {
   if (startX.value < endX.value - 50) { // Swipe right threshold
     monster.swipedRight = true
     setTimeout(() => {
-      togglePriority(monster, event)
+      toggleInCombat(monster, event)
     }, 50) // Match the duration of the animation
   }
 }
@@ -54,7 +54,7 @@ const handleTouchEnd = (monster, event) => {
       <transition-group name="swipe" tag="ol">
         <li v-for="(monster, index) in store.combatMonsters"
             @click="toggleDone(monster)"
-            @contextmenu="togglePriority(monster, $event)"
+            @contextmenu="toggleInCombat(monster, $event)"
             @touchstart="handleTouchStart"
             @touchend="handleTouchEnd(monster, $event)"
             :key="monster.combatId"
@@ -77,13 +77,24 @@ const handleTouchEnd = (monster, event) => {
 </template>
 
 <style scoped>
-
+/* Keyframes */
 @keyframes pulsate {
   0% { border-color: #8B0000; }
   50% { border-color: #4B0082; }
   100% { border-color: #8B0000; }
 }
 
+@keyframes swipeRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* General Styles */
 h2 {
   font-weight: 500;
   font-size: 4rem;
@@ -92,11 +103,16 @@ h2 {
   color: #FFD700;
   border-bottom: 3px solid #8B0000;
   animation: pulsate 3s infinite;
+  will-change: border-color;
 }
 
 .strikeout {
   text-decoration: line-through;
   color: unset;
+}
+
+li.strikeout .damage-input::placeholder {
+  text-decoration: none;
 }
 
 ol {
@@ -106,10 +122,10 @@ ol {
 }
 
 li {
-  color: #FFD700; /* Ljusare gul färg för bättre kontrast */
+  color: #FFD700;
   padding: 0.5rem;
   border-bottom: 1px solid #504f4f;
-  background-color:  #333;
+  background-color: #333;
   border-radius: 5px;
   margin-bottom: 0.5rem;
   transition: background-color 0.3s, transform 0.3s;
@@ -118,6 +134,18 @@ li {
 li:hover {
   background-color: #444;
   transform: translateY(-2px);
+}
+
+.swipe-right {
+  animation: swipeRight 0.5s forwards;
+}
+
+.combat-container {
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #222;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin: 1rem 0;
 }
 
 .monster-info {
@@ -162,28 +190,7 @@ li:hover {
   margin-left: 10px;
 }
 
-.combat-container {
-  padding: 1rem;
-  border-radius: 8px;
-  background-color: #222;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  margin: 1rem 0;
-}
-
-@keyframes swipeRight {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-}
-
-.swipe-right {
-  animation: swipeRight 0.5s forwards;
-}
-
+/* Media Queries */
 @media (min-width: 768px) {
   .combat-container {
     padding: 1.5rem;

@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted} from 'vue'
-import {store} from '../assets/store'
+import {store} from '../store.js'
 
 // props
 defineProps({
@@ -16,6 +16,24 @@ const newMonster = ref("")
 const newMonsterHP = ref(0)
 const newMonsterCR = ref("0")
 const newMonsterInCombat = ref(false)
+
+onMounted(async () => {
+  try {
+    const response = await fetch('https://api.open5e.com/v1/monsters/?page=2')
+    const data = await response.json()
+    store.monsters = data.results.slice(20, 30).map((monster, index) => ({
+      id: store.monsters.length + index + 1,
+      label: monster.name,
+      challengeRating: parseFloat(monster.challenge_rating),
+      hitPoints: monster.hit_points,
+      done: false,
+      inCombat: false,
+      count: 0
+    }))
+  } catch (error) {
+    console.log('Error fetching monsters', error)
+  }
+})
 
 const saveMonster = () => {
   const monster = {
@@ -45,9 +63,9 @@ const doEdit = (e) => {
   newMonsterCR.value = ""
   newMonsterInCombat.value = false
 }
-
 // Add/remove monster on combatList
-const togglePriority = (monster, event) => {
+
+const toggleInCombat = (monster, event) => {
   event.preventDefault()
   if (event.type === 'click') {
     if (monster.count === 0) {
@@ -57,24 +75,6 @@ const togglePriority = (monster, event) => {
     monster.count++
   }
 }
-
-onMounted(async () => {
-  try {
-    const response = await fetch('https://api.open5e.com/v1/monsters/?page=2')
-    const data = await response.json()
-    store.monsters = data.results.slice(20, 30).map((monster, index) => ({
-      id: store.monsters.length + index + 1,
-      label: monster.name,
-      challengeRating: parseFloat(monster.challenge_rating),
-      hitPoints: monster.hit_points,
-      done: false,
-      inCombat: false,
-      count: 0
-    }))
-  } catch (error) {
-    console.log('Error fetching monsters', error)
-  }
-})
 </script>
 
 
@@ -107,7 +107,7 @@ onMounted(async () => {
       <span>HP</span>
     </h3>
     <ul>
-      <li v-for="(monster, index) in store.monsters" @click="togglePriority(monster, $event)"
+      <li v-for="(monster, index) in store.monsters" @click="toggleInCombat(monster, $event)"
           :key="monster.id" class="static-class"
           :class="{ priority: monster.inCombat }">
         <span>({{ monster.count }}) {{monster.label }}</span>
