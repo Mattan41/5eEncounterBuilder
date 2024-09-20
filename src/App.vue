@@ -4,8 +4,7 @@ import TheCombatList from './components/TheCombatList.vue'
 import AppHeader from './components/AppHeader.vue'
 import {ref} from "vue";
 
-
-const showMonsterList = ref(true)
+const showMonsterList = ref(false)
 
 const toggleMonsterList = () => {
   showMonsterList.value = !showMonsterList.value
@@ -13,9 +12,9 @@ const toggleMonsterList = () => {
 </script>
 
 <template>
-  <AppHeader @toggleMonsterList="toggleMonsterList">
-    {{ showMonsterList ? 'Hide' : 'Show' }} Monster List
-  </AppHeader>
+  <header>
+    <AppHeader :showMonsterList="showMonsterList" @toggleMonsterList="toggleMonsterList"/>
+  </header>
   <main :class="{ 'single-column': !showMonsterList }">
     <TheMonsterList v-show="showMonsterList" addMonsterButton="add monster"/>
     <TheCombatList/>
@@ -35,6 +34,7 @@ main {
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
   }
+
   .single-column {
     grid-template-columns: 1fr;
   }
