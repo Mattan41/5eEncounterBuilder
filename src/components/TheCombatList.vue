@@ -48,7 +48,7 @@ const handleTouchEnd = (monster, event) => {
 
 </script>
 <template>
-  <div class="combat-container">
+  <div class="combat-container container">
     <h2>Combat!</h2>
     <ol>
       <transition-group name="swipe" tag="ol">
@@ -123,29 +123,10 @@ ol {
 
 li {
   color: #FFD700;
-  padding: 0.5rem;
-  border-bottom: 1px solid #504f4f;
-  background-color: #333;
-  border-radius: 5px;
-  margin-bottom: 0.5rem;
-  transition: background-color 0.3s, transform 0.3s;
-}
-
-li:hover {
-  background-color: #444;
-  transform: translateY(-2px);
 }
 
 .swipe-right {
   animation: swipeRight 0.5s forwards;
-}
-
-.combat-container {
-  padding: 1rem;
-  border-radius: 8px;
-  background-color: #222;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  margin: 1rem 0;
 }
 
 .monster-info {

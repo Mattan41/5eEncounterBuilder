@@ -79,7 +79,7 @@ const toggleInCombat = (monster, event) => {
 
 
 <template>
-  <div class="monster-container">
+  <div class="monster-container container">
     <div class="header">
       <h1>{{ header }}</h1>
       <button v-if="editing" class="btn" @click="doEdit(false)">
@@ -123,21 +123,17 @@ h1 {
   font-weight: 500;
   font-size: 2.6rem;
   position: relative;
-  top: -10px;
   color: #ff9100;
+  border-bottom: solid 1px #292929;
 }
 h3 {
   font-weight: 500;
   font-size: 1.6rem;
   position: relative;
-  top: -10px;
   color: #ff9100;
   border-bottom: 2px solid #ccc;
 }
 
-button {
-  padding: 0.5rem;
-}
 ul {
   list-style: none;
   padding: 0;
@@ -173,17 +169,6 @@ ul {
 li {
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem;
-  border-bottom: 1px solid #444;
-  background-color: #333;
-  border-radius: 5px;
-  margin-bottom: 0.5rem;
-  transition: background-color 0.3s, transform 0.3s;
-}
-
-li:hover {
-  background-color: #444;
-  transform: translateY(-2px);
 }
 
 li span {
@@ -206,14 +191,6 @@ li span:nth-child(2) {
 
 li span:last-child {
   text-align: right;
-}
-
-.monster-container {
-  padding: 1rem;
-  border-radius: 8px;
-  background-color: #222;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  margin: 1rem 0;
 }
 
 .header {
@@ -239,10 +216,6 @@ li span:last-child {
   .monster-container {
     padding: 1.5rem;
   }
-
-  li {
-    padding: 0.5rem;
-  }
 }
 
 @media (min-width: 1024px) {
@@ -250,8 +223,5 @@ li span:last-child {
     padding: 2rem;
   }
 
-  li {
-    padding: 1rem;
-  }
 }
 </style>
