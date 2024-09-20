@@ -107,11 +107,7 @@ const handleTouchEnd = (monster, event) => {
 </template>
 
 <style scoped>
-@keyframes pulsate {
-  0% { border-color: #8B0000; }
-  50% { border-color: #4B0082; }
-  100% { border-color: #8B0000; }
-}
+
 /* General Styles */
 .header {
   display: flex;
