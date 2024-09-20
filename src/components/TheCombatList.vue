@@ -53,24 +53,24 @@ const handleTouchEnd = (monster, event) => {
     <ol>
       <transition-group name="swipe" tag="ol">
         <li v-for="(monster, index) in store.combatMonsters"
-            @click="toggleDone(monster)"
-            @contextmenu="toggleInCombat(monster, $event)"
-            @touchstart="handleTouchStart"
-            @touchend="handleTouchEnd(monster, $event)"
-            :key="monster.combatId"
-            class="static-class"
-            :class="{ strikeout: monster.done, priority: monster.inCombat, 'swipe-right': monster.swipedRight }">
-          <div class="monster-info">
-            <div class="monster-header">
-              <span class="monster-label">{{ monster.label }}</span>
-              <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
-            </div>
-            <div class="damage-container">
-              <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @keyup.enter="applyDamage(monster, monster.damage)" class="damage-input"/>
-              <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">Apply</button>
-            </div>
-          </div>
-        </li>
+    @click="toggleDone(monster)"
+    @contextmenu="toggleInCombat(monster, $event)"
+    @touchstart="handleTouchStart"
+    @touchend="handleTouchEnd(monster, $event)"
+    :key="monster.combatId"
+    class="static-class"
+    :class="{ 'swipe-right': monster.swipedRight }">
+  <div class="monster-info">
+    <div class="monster-header" :class="{ priority: monster.inCombat, strikeout: monster.done }">
+      <span class="monster-label">{{ monster.label }}</span>
+      <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
+    </div>
+    <div class="damage-container">
+      <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
+      <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">Apply</button>
+    </div>
+  </div>
+</li>
       </transition-group>
     </ol>
   </div>
@@ -80,15 +80,14 @@ const handleTouchEnd = (monster, event) => {
 
 /* General Styles */
 h2 {
+  font-weight: 500;
+  font-size: 4rem;
+  position: relative;
+  top: -10px;
   color: #FFD700;
   border-bottom: 3px solid #8B0000;
   animation: pulsate 3s infinite;
   will-change: border-color;
-}
-
-.strikeout {
-  text-decoration: line-through;
-  color: unset;
 }
 
 ol {
@@ -97,8 +96,14 @@ ol {
   margin: 0;
 }
 
+
 li {
   color: #FFD700;
+}
+
+.strikeout {
+  text-decoration: line-through;
+  color: #555555;
 }
 
 .swipe-right {
