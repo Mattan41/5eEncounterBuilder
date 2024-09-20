@@ -1,9 +1,11 @@
 <script setup>
-import { store } from '../store.js'
-import { ref } from 'vue'
+import {store} from '../store.js'
+import {ref} from 'vue'
 
 const startX = ref(0)
 const endX = ref(0)
+const isCombatActive = ref(false)
+
 const toggleDone = (monster) => {
   monster.done = !monster.done
 }
@@ -26,11 +28,20 @@ const toggleInCombat = (monster, event) => {
   }
 }
 
+const rollInitiative = () => {
+  // Implement the roll initiative logic here
+}
+
+const toggleCombat = () => {
+  isCombatActive.value = !isCombatActive.value
+}
+
 const applyDamage = (monster, damage) => {
   monster.hitPoints -= damage
   monster.done = monster.hitPoints <= 0
   monster.damage = null // Reset the input field
 }
+
 
 const handleTouchStart = (event) => {
   startX.value = event.touches[0].clientX
@@ -49,45 +60,73 @@ const handleTouchEnd = (monster, event) => {
 </script>
 <template>
   <div class="combat-container container">
-    <h2>Combat!</h2>
+    <div :class="['header', { pulsate: isCombatActive }]">
+      <h2>Combat!</h2>
+      <div class="buttons">
+        <button @click="rollInitiative">Roll Initiative</button>
+        <button @click="toggleCombat">{{ isCombatActive ? 'Pause Combat' : 'Start Combat' }}</button>
+      </div>
+    </div>
     <ol>
       <transition-group name="swipe" tag="ol">
         <li v-for="(monster, index) in store.combatMonsters"
-    @click="toggleDone(monster)"
-    @contextmenu="toggleInCombat(monster, $event)"
-    @touchstart="handleTouchStart"
-    @touchend="handleTouchEnd(monster, $event)"
-    :key="monster.combatId"
-    class="static-class"
-    :class="{ 'swipe-right': monster.swipedRight }">
-  <div class="monster-info">
-    <div class="monster-header" :class="{ priority: monster.inCombat, strikeout: monster.done }">
-      <span class="monster-label">{{ monster.label }}</span>
-      <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
-    </div>
-    <div class="damage-container">
-      <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
-      <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">Apply</button>
-    </div>
-  </div>
-</li>
+            @click="toggleDone(monster)"
+            @contextmenu="toggleInCombat(monster, $event)"
+            @touchstart="handleTouchStart"
+            @touchend="handleTouchEnd(monster, $event)"
+            :key="monster.combatId"
+            class="static-class"
+            :class="{ 'swipe-right': monster.swipedRight }">
+          <div class="monster-info">
+            <div class="monster-header" :class="{ priority: monster.inCombat, strikeout: monster.done }">
+              <span class="monster-label">{{ monster.label }}</span>
+              <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
+            </div>
+            <div class="damage-container">
+              <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop
+                     @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
+              <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">
+                Apply
+              </button>
+            </div>
+          </div>
+        </li>
       </transition-group>
     </ol>
   </div>
 </template>
 
 <style scoped>
-
+@keyframes pulsate {
+  0% { border-color: #8B0000; }
+  50% { border-color: #4B0082; }
+  100% { border-color: #8B0000; }
+}
 /* General Styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #8B0000;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.header.pulsate {
+  animation: pulsate 3s infinite;
+  will-change: border-color;
+}
+
 h2 {
-  font-weight: 500;
-  font-size: 4rem;
   position: relative;
   top: -10px;
   color: #FFD700;
-  border-bottom: 3px solid #8B0000;
-  animation: pulsate 3s infinite;
-  will-change: border-color;
+
+}
+
+.buttons {
+  display: flex;
+  gap: 0.5rem;
 }
 
 ol {
