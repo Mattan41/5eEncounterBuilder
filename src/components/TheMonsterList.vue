@@ -71,7 +71,7 @@ const toggleInCombat = (monster, event) => {
     if (monster.count === 0) {
       monster.inCombat = true
     }
-    store.combatMonsters.push({ ...monster, combatId: Date.now() })
+    store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0 })
     monster.count++
   }
 }

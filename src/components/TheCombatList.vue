@@ -28,10 +28,15 @@ const toggleInCombat = (monster, event) => {
   }
 }
 
-const rollInitiative = () => {
-  // Implement the roll initiative logic here
+const rollInitiative = (monster) => {
+  monster.initiative = Math.floor(Math.random() * 20) + 1
 }
 
+const rollAllInitiatives = () => {
+  store.combatMonsters.forEach(monster => {
+    rollInitiative(monster)
+  })
+}
 const toggleCombat = () => {
   isCombatActive.value = !isCombatActive.value
 }
@@ -63,7 +68,7 @@ const handleTouchEnd = (monster, event) => {
     <div :class="['header', { pulsate: isCombatActive }]">
       <h2>Combat!</h2>
       <div class="buttons">
-        <button @click="rollInitiative">Roll Initiative</button>
+        <button @click="rollAllInitiatives">Roll Initiative</button>
         <button @click="toggleCombat">{{ isCombatActive ? 'Pause Combat' : 'Start Combat' }}</button>
       </div>
     </div>
@@ -83,6 +88,11 @@ const handleTouchEnd = (monster, event) => {
               <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
             </div>
             <div class="damage-container">
+              <input type="number" v-model.number="monster.initiative" @click.stop class="initiative-input"/>
+              <div class="roll-initiative" @click.stop="rollInitiative(monster)">
+                <img src="@/assets/d20.webp" alt="Roll initiative" class="d20-image"/>
+                <span class="roll-text">Roll initiative</span>
+              </div>
               <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop
                      @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
               <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">
@@ -189,6 +199,51 @@ li {
 .apply-button {
   padding: 0.4rem;
   margin-left: 10px;
+}
+
+.initiative-input {
+  width: 3rem;
+  text-align: center;
+  margin-right: 0.5rem;
+  background-color: #444; /* Dark background */
+  color: white;
+  border: 1px solid #555;
+  padding: 0.4rem;
+  border-radius: 5px;
+}
+
+.roll-initiative {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+.d20-image {
+  width: 24px;
+  height: 24px;
+  filter: sepia(1) saturate(5) hue-rotate(-25deg);
+}
+
+.roll-text {
+  visibility: hidden;
+  width: 100px;
+  background-color: rgba(128, 128, 128, 0.8);
+  color: whitesmoke;
+  text-align: center;
+  border-radius: 6px;
+  padding: 1px 0;
+  position: absolute;
+  z-index: 1;
+  left: 125%; /* Position to the right of the image */
+  top: 30%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.7s ease-in-out;
+  font-size: 0.8rem; /* Smaller text */
+}
+
+.roll-initiative:hover .roll-text {
+  visibility: visible;
+  opacity: 1;
 }
 
 /* Media Queries */
