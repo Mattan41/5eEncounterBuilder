@@ -1,106 +1,106 @@
 @import './base.css';
 
 
-
-
 @keyframes swipeRight {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
 }
 
 body {
-  font-size: 15px;
+    font-size: 15px;
 }
 
 h1 {
-  font-weight: 500;
-  font-size: 2.6rem;
-  color: #ff9100;
+    font-weight: 500;
+    font-size: 2.6rem;
+    color: #ff9100;
 }
 
 h2 {
-  font-weight: 500;
-  font-size: 4rem;
-  color: #ff9100;
+    font-weight: 500;
+    font-size: 2rem;
+    color: #ff9100;
 }
 
 h3 {
-  font-weight: 500;
-  font-size: 1.6rem;
-  position: relative;
-  color: #ff9100;
+    font-weight: 500;
+    font-size: 1.6rem;
+    position: relative;
+    color: #ff9100;
 }
 
 
 button {
-  background-color: #8B0000; /* Dark red */
-  color: white;
-  border: none;
-  padding: 0.5rem;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin: 5px;
+    background-color: #8B0000; /* Dark red */
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 5px;
 }
 
 button:hover {
-  background-color: #5A0000; /* Darker red */
+    background-color: #5A0000; /* Darker red */
 }
 
 button:disabled {
-  background-color: #8B0000;
-  opacity: 0.6;
-  cursor: not-allowed;
+    background-color: #8B0000;
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 li {
-  padding: 0.5rem;
-  border-bottom: 1px solid #444;
-  background-color: #333;
-  border-radius: 5px;
-  margin-bottom: 0.5rem;
-  transition: background-color 0.3s, transform 0.3s;
+    padding: 0.5rem;
+    border-bottom: 1px solid #444;
+    background-color: #333;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.3s, transform 0.3s;
 }
 
 li:hover {
-  background-color: #444;
-  transform: translateY(-2px);
+    background-color: #444;
+    transform: translateY(-2px);
 }
 
 @media (hover: hover) {
-  a:hover {
-    background-color: hsl(0, 91%, 17%);
-  }
+    a:hover {
+        background-color: hsl(0, 91%, 17%);
+    }
 }
 
 .container {
-  padding: 0.5rem;
-  border-radius: 8px;
-  background-color: #222;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  margin: 1rem 0;
+    padding: 0.5rem;
+    border-radius: 8px;
+    background-color: #222;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin: 1rem 0;
 }
 
 /* Larger font size for tablets (min-width: 768px) */
 @media (min-width: 768px) {
-  body {
-    font-size: 18px;
-  }
-  li {
-    padding: 0.5rem;
-  }
+    body {
+        font-size: 18px;
+    }
+
+    li {
+        padding: 0.5rem;
+    }
 }
 
 /* Even larger font size for desktops (min-width: 1024px) */
 @media (min-width: 1024px) {
-  body {
-    font-size: 20px;
-  }
+    body {
+        font-size: 20px;
+    }
+
     li {
         padding: 1rem;
     }
