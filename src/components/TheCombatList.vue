@@ -77,29 +77,9 @@ const handleTouchEnd = (monster, event) => {
 </template>
 
 <style scoped>
-/* Keyframes */
-@keyframes pulsate {
-  0% { border-color: #8B0000; }
-  50% { border-color: #4B0082; }
-  100% { border-color: #8B0000; }
-}
-
-@keyframes swipeRight {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-}
 
 /* General Styles */
 h2 {
-  font-weight: 500;
-  font-size: 4rem;
-  position: relative;
-  top: -10px;
   color: #FFD700;
   border-bottom: 3px solid #8B0000;
   animation: pulsate 3s infinite;
@@ -109,10 +89,6 @@ h2 {
 .strikeout {
   text-decoration: line-through;
   color: unset;
-}
-
-li.strikeout .damage-input::placeholder {
-  text-decoration: none;
 }
 
 ol {

@@ -120,17 +120,11 @@ const toggleInCombat = (monster, event) => {
 
 <style scoped>
 h1 {
-  font-weight: 500;
-  font-size: 2.6rem;
   position: relative;
-  color: #ff9100;
   border-bottom: solid 1px #292929;
 }
 h3 {
-  font-weight: 500;
-  font-size: 1.6rem;
   position: relative;
-  color: #ff9100;
   border-bottom: 2px solid #ccc;
 }
 
