@@ -86,13 +86,13 @@ const handleTouchEnd = (monster, event) => {
             <div class="monster-header" :class="{ priority: monster.inCombat, strikeout: monster.done }">
               <span class="monster-label">{{ monster.label }}</span>
               <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
+            </div>
+            <div class="damage-container">
               <input type="number" v-model.number="monster.initiative" @click.stop class="initiative-input"/>
               <div class="roll-initiative" @click.stop="rollInitiative(monster)">
                 <img src="@/assets/d20.webp" alt="Roll initiative" class="d20-image"/>
                 <span class="roll-text">Roll initiative</span>
               </div>
-            </div>
-            <div class="damage-container">
               <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop
                      @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
               <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">
