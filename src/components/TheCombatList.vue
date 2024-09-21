@@ -86,13 +86,13 @@ const handleTouchEnd = (monster, event) => {
             <div class="monster-header" :class="{ priority: monster.inCombat, strikeout: monster.done }">
               <span class="monster-label">{{ monster.label }}</span>
               <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
-            </div>
-            <div class="damage-container">
               <input type="number" v-model.number="monster.initiative" @click.stop class="initiative-input"/>
               <div class="roll-initiative" @click.stop="rollInitiative(monster)">
                 <img src="@/assets/d20.webp" alt="Roll initiative" class="d20-image"/>
                 <span class="roll-text">Roll initiative</span>
               </div>
+            </div>
+            <div class="damage-container">
               <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop
                      @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
               <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">
@@ -214,11 +214,11 @@ li {
   cursor: pointer;
 }
 .d20-image {
-  width: 24px;
-  height: 24px;
-  filter: sepia(1) saturate(5) hue-rotate(-25deg);
+  width: 28px;
+  height: auto;
+  filter: invert(0.3) sepia(1) saturate(3) hue-rotate(-25deg) drop-shadow(0 0 2px black);
+  transition: filter 0.5s;
 }
-
 .roll-text {
   visibility: hidden;
   width: 100px;
