@@ -1,15 +1,19 @@
 <script setup>
 import {store} from '../store.js'
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 
 const startX = ref(0)
 const endX = ref(0)
 const isCombatActive = ref(false)
+const currentRound = ref(1)
+const currentMonsterIndex = ref(0)
+const hasCombatStarted = ref(false)
 
 const toggleDone = (monster) => {
   monster.done = !monster.done
 }
 
+//Handles count of monsters of same type in combat
 const toggleInCombat = (monster, event) => {
   event.preventDefault()
   monster.inCombat = !monster.inCombat
@@ -28,18 +32,69 @@ const toggleInCombat = (monster, event) => {
   }
 }
 
+const toggleCombat = () => {
+  isCombatActive.value = !isCombatActive.value
+  if (isCombatActive.value && !hasCombatStarted.value) {
+    currentMonsterIndex.value = store.combatMonsters.reduce((maxIndex, monster, index, monsters) =>
+        monster.initiative > monsters[maxIndex].initiative ? index : maxIndex, 0)
+    hasCombatStarted.value = true
+  }
+}
+
 const rollInitiative = (monster) => {
   monster.initiative = Math.floor(Math.random() * 20) + 1
 }
-
 const rollAllInitiatives = () => {
   store.combatMonsters.forEach(monster => {
     rollInitiative(monster)
   })
 }
-const toggleCombat = () => {
-  isCombatActive.value = !isCombatActive.value
+
+//Sort the list displayed by initiative
+const sortByInitiative = () => {
+  store.combatMonsters.sort((a, b) => b.initiative - a.initiative)
 }
+
+//Computed property to get the sorted indices
+const sortedIndices = computed(() => {
+  return store.combatMonsters
+      .map((monster, index) => ({ index, initiative: monster.initiative }))
+      .sort((a, b) => b.initiative - a.initiative)
+      .map(item => item.index)
+})
+
+const nextInInitiative = () => {
+  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value)
+  if (currentIndex < sortedIndices.value.length - 1) {
+    currentMonsterIndex.value = sortedIndices.value[currentIndex + 1]
+  } else {
+    currentMonsterIndex.value = sortedIndices.value[0]
+    currentRound.value++
+  }
+}
+
+const previousInInitiative = () => {
+  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value)
+  if (currentIndex > 0) {
+    currentMonsterIndex.value = sortedIndices.value[currentIndex - 1]
+  } else {
+    currentMonsterIndex.value = sortedIndices.value[sortedIndices.value.length - 1]
+    currentRound.value = Math.max(1, currentRound.value - 1)
+  }
+}
+
+const resetCombat = () => {
+  currentRound.value = 1
+  currentMonsterIndex.value = 0
+  isCombatActive.value = false
+  hasCombatStarted.value = false
+  store.combatMonsters.forEach(monster => {
+    monster.initiative = 0
+    monster.done = false
+    monster.inCombat = false
+  })
+}
+
 
 const applyDamage = (monster, damage) => {
   monster.hitPoints -= damage
@@ -62,45 +117,53 @@ const handleTouchEnd = (monster, event) => {
   }
 }
 
+
 </script>
 <template>
   <div class="combat-container container">
     <div :class="['header', { pulsate: isCombatActive }]">
       <h2>Combat!</h2>
+      <p>Round: {{ currentRound }}</p>
       <div class="buttons">
         <button @click="rollAllInitiatives">Roll Initiative</button>
         <button @click="toggleCombat">{{ isCombatActive ? 'Pause Combat' : 'Start Combat' }}</button>
+      </div>
+      <div class="buttons" v-show="isCombatActive">
+        <button @click="sortByInitiative">Sort</button>
+        <button @click="nextInInitiative">Next</button>
+        <button @click="previousInInitiative">Previous</button>
+        <button @click="resetCombat">Reset combat</button>
       </div>
     </div>
     <ol>
       <transition-group name="swipe" tag="ol">
         <li v-for="(monster, index) in store.combatMonsters"
-            @click="toggleDone(monster)"
-            @contextmenu="toggleInCombat(monster, $event)"
-            @touchstart="handleTouchStart"
-            @touchend="handleTouchEnd(monster, $event)"
-            :key="monster.combatId"
-            class="static-class"
-            :class="{ 'swipe-right': monster.swipedRight }">
-          <div class="monster-info">
-            <div class="monster-header" :class="{ priority: monster.inCombat, strikeout: monster.done }">
-              <span class="monster-label">{{ monster.label }}</span>
-              <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
-            </div>
-            <div class="damage-container">
-              <input type="number" v-model.number="monster.initiative" @click.stop class="initiative-input"/>
-              <div class="roll-initiative" @click.stop="rollInitiative(monster)">
-                <img src="@/assets/d20.webp" alt="Roll initiative" class="d20-image"/>
-                <span class="roll-text">Roll initiative</span>
-              </div>
-              <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop
-                     @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
-              <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">
-                Apply
-              </button>
-            </div>
-          </div>
-        </li>
+    @click="toggleDone(monster)"
+    @contextmenu="toggleInCombat(monster, $event)"
+    @touchstart="handleTouchStart"
+    @touchend="handleTouchEnd(monster, $event)"
+    :key="monster.combatId"
+    class="static-class"
+    :class="{ 'swipe-right': monster.swipedRight, 'current-monster': isCombatActive && index === currentMonsterIndex }">
+  <div class="monster-info">
+    <div class="monster-header" :class="{ priority: monster.inCombat, strikeout: monster.done }">
+      <span class="monster-label">{{ monster.label }}</span>
+      <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
+    </div>
+    <div class="damage-container">
+      <input type="number" v-model.number="monster.initiative" @click.stop class="initiative-input"/>
+      <div class="roll-initiative" @click.stop="rollInitiative(monster)">
+        <img src="@/assets/d20.webp" alt="Roll initiative" class="d20-image"/>
+        <span class="roll-text">Roll initiative</span>
+      </div>
+      <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop
+             @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
+      <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">
+        Apply
+      </button>
+    </div>
+  </div>
+</li>
       </transition-group>
     </ol>
   </div>
@@ -153,6 +216,10 @@ li {
 
 .swipe-right {
   animation: swipeRight 0.5s forwards;
+}
+
+.current-monster {
+  background-color: rgba(255, 255, 0, 0.2);
 }
 
 .monster-info {
@@ -213,12 +280,14 @@ li {
   display: inline-block;
   cursor: pointer;
 }
+
 .d20-image {
   width: 28px;
   height: auto;
   filter: invert(0.3) sepia(1) saturate(3) hue-rotate(-25deg) drop-shadow(0 0 2px black);
   transition: filter 0.5s;
 }
+
 .roll-text {
   visibility: hidden;
   width: 100px;
