@@ -1,6 +1,6 @@
 <script setup>
-import {ref, onMounted} from 'vue'
-import {store} from '../store.js'
+import { ref, onMounted } from 'vue'
+import { saveCombatMonsters, store } from '../store.js'
 
 // props
 defineProps({
@@ -24,8 +24,7 @@ onMounted(async () => {
       challengeRating: parseFloat(monster.challenge_rating),
       hitPoints: monster.hit_points,
       done: false,
-      inCombat: false,
-      count: 0
+      inCombat: false
     }))
   } catch (error) {
     console.log('Error fetching monsters', error)
@@ -39,12 +38,12 @@ const saveMonster = () => {
     challengeRating: parseFloat(newMonsterCR.value),
     hitPoints: newMonsterHP.value,
     done: false,
-    inCombat: newMonsterInCombat.value,
-    count: 0
+    inCombat: newMonsterInCombat.value
   }
   store.monsters.push(monster)
   if (newMonsterInCombat.value) {
     store.combatMonsters.push({ ...monster, combatId: Date.now() })
+    saveCombatMonsters()
   }
   newMonster.value = ""
   newMonsterHP.value = null
@@ -59,41 +58,39 @@ const doEdit = (e) => {
   newMonsterCR.value = ""
   newMonsterInCombat.value = false
 }
+
 // Add/remove monster on combatList
 const toggleInCombat = (monster, event) => {
   event.preventDefault()
   if (event.type === 'click') {
-    if (monster.count === 0) {
-      monster.inCombat = true
-    }
+    // Always add a new instance of the monster to the combat list
     store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0 })
-    monster.count++
+    saveCombatMonsters()
+    // Add blinking effect
+    const listItem = event.currentTarget
+    listItem.classList.add('blink')
+    setTimeout(() => {
+      listItem.classList.remove('blink')
+    }, 1000)
   }
 }
 </script>
-
 
 <template>
   <div class="monster-container container">
     <div class="header">
       <h1>{{ header }}</h1>
-      <button v-if="editing" class="btn" @click="doEdit(false)">
-        Cancel
-      </button>
-      <button v-else class="btn btn-primary" @click="doEdit(true)">
-        Add monster
-      </button>
+      <button @click="doEdit(true)">Add Monster</button>
     </div>
     <form class="add-monsters-form" v-if="editing" @submit.prevent="saveMonster">
       <input v-model.trim="newMonster" type="text" placeholder="Monster Name">
       <input v-model.number="newMonsterHP" type="number" placeholder="Hit Points">
       <input v-model.trim="newMonsterCR" type="text" placeholder="Challenge Rating">
       <label for="newMonster">
-        <input type="checkbox" v-model="newMonsterInCombat">
-        Active in combat
+        <input v-model="newMonsterInCombat" type="checkbox"> Add to Combat
       </label>
       <button :disabled="newMonster.length < 1 || newMonsterHP <= 0 || !newMonsterCR" class="btn btn-primary">
-        Save monster
+        Save
       </button>
     </form>
     <h3 class="monster-list-header">
@@ -102,10 +99,8 @@ const toggleInCombat = (monster, event) => {
       <span>HP</span>
     </h3>
     <ul>
-      <li v-for="(monster, index) in monsters" @click="toggleInCombat(monster, $event)"
-          :key="monster.id" class="static-class"
-          :class="{ priority: monster.inCombat }">
-        <span>({{ monster.count }}) {{monster.label }}</span>
+      <li v-for="(monster, index) in monsters" @click="toggleInCombat(monster, $event)" :key="monster.id">
+        <span>{{ monster.label }}</span>
         <span>{{ monster.challengeRating }}</span>
         <span>{{ monster.hitPoints }}</span>
       </li>
@@ -114,6 +109,21 @@ const toggleInCombat = (monster, event) => {
 </template>
 
 <style scoped>
+/* Add the blink effect */
+.blink {
+  animation: blink-animation 1s;
+}
+
+@keyframes blink-animation {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: #ff9100; /* Priority color */
+  }
+}
+
+/* Other styles */
 h1 {
   position: relative;
   border-bottom: solid 1px #292929;
@@ -212,6 +222,5 @@ li span:last-child {
   .monster-container {
     padding: 2rem;
   }
-
 }
 </style>

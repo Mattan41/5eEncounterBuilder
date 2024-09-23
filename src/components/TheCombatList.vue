@@ -1,9 +1,8 @@
 <script setup>
-import {store} from '../store.js'
-import {computed, ref} from 'vue'
-import { defineEmits } from 'vue'
+import {saveCombatMonsters, store} from '../store.js'
+import {computed, ref, defineEmits} from 'vue'
 
-const emit = defineEmits(['updateCount'])
+
 
 const startX = ref(0)
 const endX = ref(0)
@@ -12,26 +11,21 @@ const currentRound = ref(1)
 const currentMonsterIndex = ref(0)
 const hasCombatStarted = ref(false)
 
-//Handles count of monsters of same type in combat
 
 const toggleInCombat = (monster, event) => {
-  event.preventDefault()
-  monster.inCombat = !monster.inCombat
-  if (!monster.inCombat) {
-    const index = store.combatMonsters.findIndex(m => m.combatId === monster.combatId)
-    if (index !== -1) {
-      store.combatMonsters.splice(index, 1)
-      const originalMonster = store.monsters.find(m => m.id === monster.id)
-      if (originalMonster) {
-        originalMonster.count--
-        emit('updateCount', originalMonster.id, originalMonster.count)
-        if (originalMonster.count === 0) {
-          originalMonster.inCombat = false
-        }
-      }
-    }
+  event.preventDefault();
+  const index = store.combatMonsters.findIndex(m => m.combatId === monster.combatId);
+  if (index !== -1) {
+    store.combatMonsters.splice(index, 1);
+    saveCombatMonsters();
+  } else {
+    store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0 });
+    saveCombatMonsters();
   }
-}
+  monster.inCombat = !monster.inCombat;
+};
+
+
 const toggleCombat = () => {
   isCombatActive.value = !isCombatActive.value
   if (isCombatActive.value && !hasCombatStarted.value) {
@@ -52,11 +46,13 @@ const rollAllInitiatives = () => {
   store.combatMonsters.forEach(monster => {
     rollInitiative(monster)
   })
+  saveCombatMonsters()
 }
 
 //Sort the list displayed by initiative
 const sortByInitiative = () => {
   store.combatMonsters.sort((a, b) => b.initiative - a.initiative)
+  saveCombatMonsters()
 }
 
 //Computed property to get the sorted indices
@@ -75,6 +71,7 @@ const nextInInitiative = () => {
     currentMonsterIndex.value = sortedIndices.value[0]
     currentRound.value++
   }
+  saveCombatMonsters()
 }
 
 const previousInInitiative = () => {
@@ -85,6 +82,7 @@ const previousInInitiative = () => {
     currentMonsterIndex.value = sortedIndices.value[sortedIndices.value.length - 1]
     currentRound.value = Math.max(1, currentRound.value - 1)
   }
+  saveCombatMonsters()
 }
 
 const resetCombat = () => {
@@ -97,6 +95,7 @@ const resetCombat = () => {
     monster.done = false
     monster.inCombat = false
   })
+  saveCombatMonsters()
 }
 
 
@@ -104,6 +103,7 @@ const applyDamage = (monster, damage) => {
   monster.hitPoints -= damage
   monster.done = monster.hitPoints <= 0
   monster.damage = null // Reset the input field
+  saveCombatMonsters()
 }
 
 
@@ -113,14 +113,14 @@ const handleTouchStart = (event) => {
 
 const handleTouchEnd = (monster, event) => {
   endX.value = event.changedTouches[0].clientX
-  if (startX.value < endX.value - 50) { // Swipe right threshold
+  if (startX.value < endX.value - 50) {
     monster.swipedRight = true
     setTimeout(() => {
       toggleInCombat(monster, event)
-    }, 50) // Match the duration of the animation
+      saveCombatMonsters()
+    }, 50)
   }
 }
-
 
 </script>
 <template>
@@ -143,12 +143,11 @@ const handleTouchEnd = (monster, event) => {
     </div>
     <ol>
       <transition-group name="swipe" tag="ol">
-        <li v-for="(monster, index) in store.combatMonsters"
+        <li v-for="(monster, index) in store.combatMonsters" :key="monster.combatId"
     @click="toggleDone(monster)"
     @contextmenu="toggleInCombat(monster, $event)"
     @touchstart="handleTouchStart"
     @touchend="handleTouchEnd(monster, $event)"
-    :key="monster.combatId"
     class="static-class"
     :class="{ 'swipe-right': monster.swipedRight, 'current-monster': isCombatActive && index === currentMonsterIndex }">
   <div class="monster-info">

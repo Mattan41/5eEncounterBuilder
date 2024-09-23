@@ -11,12 +11,6 @@ const toggleMonsterList = () => {
   showMonsterList.value = !showMonsterList.value
 }
 
-const handleUpdateCount = (id, count) => {
-  const monster = store.monsters.find(m => m.id === id)
-  if (monster) {
-    monster.count = count
-  }
-}
 </script>
 
 <template>
@@ -25,7 +19,7 @@ const handleUpdateCount = (id, count) => {
   </header>
   <main :class="{ 'single-column': !showMonsterList }">
     <TheMonsterList v-show="showMonsterList" :monsters="store.monsters"/>
-    <TheCombatList @updateCount="handleUpdateCount"/>
+    <TheCombatList/>
   </main>
 </template>
 
