@@ -17,6 +17,7 @@
 
 body {
     font-size: 15px;
+    background-color: #181818;
 }
 
 h1 {
@@ -36,6 +37,10 @@ h3 {
     font-size: 1.6rem;
     position: relative;
     color: #ff9100;
+}
+
+p{
+    color: #888888;
 }
 
 

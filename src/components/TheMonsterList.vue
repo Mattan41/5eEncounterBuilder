@@ -42,7 +42,7 @@ const saveMonster = () => {
   }
   store.monsters.push(monster)
   if (newMonsterInCombat.value) {
-    store.combatMonsters.push({ ...monster, combatId: Date.now() })
+    store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0 })
     saveCombatMonsters()
   }
   newMonster.value = ""

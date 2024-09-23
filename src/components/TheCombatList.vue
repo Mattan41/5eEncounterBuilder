@@ -1,6 +1,6 @@
 <script setup>
 import {saveCombatMonsters, store} from '../store.js'
-import {computed, ref, defineEmits} from 'vue'
+import {computed, ref} from 'vue'
 
 
 
@@ -10,7 +10,7 @@ const isCombatActive = ref(false)
 const currentRound = ref(1)
 const currentMonsterIndex = ref(0)
 const hasCombatStarted = ref(false)
-
+const isRoundBlinking = ref(false);
 
 const toggleInCombat = (monster, event) => {
   event.preventDefault();
@@ -63,27 +63,40 @@ const sortedIndices = computed(() => {
       .map(item => item.index)
 })
 
-const nextInInitiative = () => {
-  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value)
-  if (currentIndex < sortedIndices.value.length - 1) {
-    currentMonsterIndex.value = sortedIndices.value[currentIndex + 1]
+const nextInInitiative = () => updateInitiative(true);
+const previousInInitiative = () => updateInitiative(false);
+const updateInitiative = (isNext) => {
+  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value);
+  if (isNext) {
+    if (currentIndex < sortedIndices.value.length - 1) {
+      currentMonsterIndex.value = sortedIndices.value[currentIndex + 1];
+    } else {
+      triggerRoundBlink(() => {
+        currentMonsterIndex.value = sortedIndices.value[0];
+        currentRound.value++;
+      });
+    }
   } else {
-    currentMonsterIndex.value = sortedIndices.value[0]
-    currentRound.value++
+    if (currentIndex > 0) {
+      currentMonsterIndex.value = sortedIndices.value[currentIndex - 1];
+    } else {
+      triggerRoundBlink(() => {
+        currentMonsterIndex.value = sortedIndices.value[sortedIndices.value.length - 1];
+        currentRound.value = Math.max(1, currentRound.value - 1);
+      });
+    }
   }
-  saveCombatMonsters()
-}
+  saveCombatMonsters();
+};
 
-const previousInInitiative = () => {
-  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value)
-  if (currentIndex > 0) {
-    currentMonsterIndex.value = sortedIndices.value[currentIndex - 1]
-  } else {
-    currentMonsterIndex.value = sortedIndices.value[sortedIndices.value.length - 1]
-    currentRound.value = Math.max(1, currentRound.value - 1)
-  }
-  saveCombatMonsters()
-}
+const triggerRoundBlink = (callback) => {
+  isRoundBlinking.value = true;
+  setTimeout(() => {
+    if (callback) callback();
+    isRoundBlinking.value = false;
+  }, 500);
+};
+
 
 const resetCombat = () => {
   currentRound.value = 1
@@ -128,7 +141,9 @@ const handleTouchEnd = (monster, event) => {
     <div :class="['header', { pulsate: isCombatActive }]">
       <div class="header-top">
         <h2>Combat!</h2>
-        <p>Round: {{ currentRound }}</p>
+        <transition name="round-blink">
+          <p v-if="!isRoundBlinking">Round: {{ currentRound }}</p>
+        </transition>
       </div>
       <div class="buttons">
         <button @click="rollAllInitiatives">Roll Initiative</button>
@@ -175,6 +190,23 @@ const handleTouchEnd = (monster, event) => {
 </template>
 
 <style scoped>
+@keyframes blink-out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes blink-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.round-blink-enter-active, .round-blink-leave-active {
+  transition: opacity 0.5s;
+}
+
+.round-blink-enter-from, .round-blink-leave-to {
+  opacity: 0;
+}
 
 /* General Styles */
 .header {
