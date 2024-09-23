@@ -122,14 +122,16 @@ const handleTouchEnd = (monster, event) => {
 <template>
   <div class="combat-container container">
     <div :class="['header', { pulsate: isCombatActive }]">
-      <h2>Combat!</h2>
-      <p>Round: {{ currentRound }}</p>
+      <div class="header-top">
+        <h2>Combat!</h2>
+        <p>Round: {{ currentRound }}</p>
+      </div>
       <div class="buttons">
         <button @click="rollAllInitiatives">Roll Initiative</button>
+        <button @click="sortByInitiative">Sort</button>
         <button @click="toggleCombat">{{ isCombatActive ? 'Pause Combat' : 'Start Combat' }}</button>
       </div>
-      <div class="buttons" v-show="isCombatActive">
-        <button @click="sortByInitiative">Sort</button>
+      <div class="sub-buttons" v-show="isCombatActive">
         <button @click="nextInInitiative">Next</button>
         <button @click="previousInInitiative">Previous</button>
         <button @click="resetCombat">Reset combat</button>
@@ -173,12 +175,28 @@ const handleTouchEnd = (monster, event) => {
 
 /* General Styles */
 .header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
   align-items: center;
   border-bottom: 3px solid #8B0000;
   padding-bottom: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+
+}
+
+.buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sub-buttons {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .header.pulsate {
@@ -191,11 +209,6 @@ h2 {
   top: -10px;
   color: #FFD700;
 
-}
-
-.buttons {
-  display: flex;
-  gap: 0.5rem;
 }
 
 ol {
