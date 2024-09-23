@@ -1,19 +1,19 @@
 <script setup>
-import {defineEmits, computed, ref} from 'vue'
+
+defineProps({
+  showMonsterList: {
+    type: Boolean,
+    required: true
+  }
+})
 defineEmits(['toggleMonsterList']);
-
-const showMonsterList = ref(true);
-
-const buttonText = computed(() => {
-  return showMonsterList.value ? 'Hide Monster List' : 'Show Monster List';
-});
 </script>
 
 <template>
   <div class="app-header">
     <h1 class="app-title">5e Encounter Builder</h1>
     <button @click="$emit('toggleMonsterList')">
-      <span class="button-text">{{ buttonText }}</span>
+      <span class="button-text">{{ showMonsterList ? 'Hide Monster List' : 'Show Monster List' }}</span>
       <span class="button-text-mobile">Monster List</span>
     </button>
   </div>
@@ -64,6 +64,7 @@ button:hover {
   .button-text {
     display: inline;
   }
+
   .button-text-mobile {
     display: none;
   }

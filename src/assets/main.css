@@ -1,6 +1,10 @@
 @import './base.css';
 
-
+@keyframes pulsate {
+    0% { border-color: #8B0000; }
+    50% { border-color: #4B0082; }
+    100% { border-color: #8B0000; }
+}
 @keyframes swipeRight {
     from {
         transform: translateX(0);
@@ -13,6 +17,7 @@
 
 body {
     font-size: 15px;
+    background-color: #181818;
 }
 
 h1 {
@@ -32,6 +37,10 @@ h3 {
     font-size: 1.6rem;
     position: relative;
     color: #ff9100;
+}
+
+p{
+    color: #888888;
 }
 
 
@@ -63,6 +72,7 @@ li {
     border-radius: 5px;
     margin-bottom: 0.5rem;
     transition: background-color 0.3s, transform 0.3s;
+    color: #888888;
 }
 
 li:hover {
