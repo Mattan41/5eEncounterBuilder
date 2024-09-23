@@ -6,10 +6,7 @@ defineProps({
     required: true
   }
 })
-
-const emit = defineEmits(['toggleMonsterList'])
-
-
+defineEmits(['toggleMonsterList']);
 </script>
 
 <template>

@@ -2,11 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { saveCombatMonsters, store } from '../store.js'
 
-// props
-defineProps({
-  monsters: Array
-});
 
+const monsters = ref([])
 const header = ref('Monster List')
 const editing = ref(false)
 const newMonster = ref("")
@@ -18,8 +15,8 @@ onMounted(async () => {
   try {
     const response = await fetch('https://api.open5e.com/v1/monsters/?page=2')
     const data = await response.json()
-    store.monsters = data.results.slice(20, 30).map((monster, index) => ({
-      id: store.monsters.length + index + 1,
+    monsters.value = data.results.slice(20, 30).map((monster, index) => ({
+      id: monsters.value.length + index + 1,
       label: monster.name,
       challengeRating: parseFloat(monster.challenge_rating),
       hitPoints: monster.hit_points,

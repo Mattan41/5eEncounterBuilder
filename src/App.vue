@@ -2,7 +2,6 @@
 import TheMonsterList from './components/TheMonsterList.vue'
 import TheCombatList from './components/TheCombatList.vue'
 import AppHeader from './components/AppHeader.vue'
-import { store } from './store.js'
 import {ref} from "vue";
 
 const showMonsterList = ref(false)
@@ -18,7 +17,7 @@ const toggleMonsterList = () => {
     <AppHeader :showMonsterList="showMonsterList" @toggleMonsterList="toggleMonsterList"/>
   </header>
   <main :class="{ 'single-column': !showMonsterList }">
-    <TheMonsterList v-show="showMonsterList" :monsters="store.monsters"/>
+    <TheMonsterList v-show="showMonsterList"/>
     <TheCombatList/>
   </main>
 </template>

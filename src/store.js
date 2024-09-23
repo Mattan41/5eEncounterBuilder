@@ -7,7 +7,6 @@ const loadCombatMonsters = () => {
 }
 
 export const store = reactive({
-  monsters: [],
   combatMonsters: loadCombatMonsters()
 })
 
