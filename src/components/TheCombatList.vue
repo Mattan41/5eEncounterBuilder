@@ -165,7 +165,7 @@ const handleTouchEnd = (monster, event) => {
             class="static-class"
             :class="{ 'swipe-right': monster.swipedRight, 'current-monster': isCombatActive && index === currentMonsterIndex }">
           <div class="monster-info">
-            <div class="monster-header" :class="{ priority: monster.inCombat, strikeout: monster.done }">
+            <div class="monster-header" :class="{strikeout: monster.done }">
               <div class="initiative-group">
                 <input type="number" v-model.number="monster.initiative" @click.stop class="initiative-input"/>
                 <div class="roll-initiative" @click.stop="rollInitiative(monster)">
@@ -191,23 +191,7 @@ const handleTouchEnd = (monster, event) => {
 </template>
 
 <style scoped>
-@keyframes blink-out {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
 
-@keyframes blink-in {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
 
 .round-blink-enter-active, .round-blink-leave-active {
   transition: opacity 0.5s;
