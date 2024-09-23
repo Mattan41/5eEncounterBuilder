@@ -3,7 +3,6 @@ import {saveCombatMonsters, store} from '../store.js'
 import {computed, ref} from 'vue'
 
 
-
 const startX = ref(0)
 const endX = ref(0)
 const isCombatActive = ref(false)
@@ -19,7 +18,7 @@ const toggleInCombat = (monster, event) => {
     store.combatMonsters.splice(index, 1);
     saveCombatMonsters();
   } else {
-    store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0 });
+    store.combatMonsters.push({...monster, combatId: Date.now(), initiative: 0});
     saveCombatMonsters();
   }
   monster.inCombat = !monster.inCombat;
@@ -58,33 +57,33 @@ const sortByInitiative = () => {
 //Computed property to get the sorted indices
 const sortedIndices = computed(() => {
   return store.combatMonsters
-      .map((monster, index) => ({ index, initiative: monster.initiative }))
+      .map((monster, index) => ({index, initiative: monster.initiative}))
       .sort((a, b) => b.initiative - a.initiative)
       .map(item => item.index)
 })
 
-const nextInInitiative = () => updateInitiative(true);
-const previousInInitiative = () => updateInitiative(false);
-const updateInitiative = (isNext) => {
+const nextInInitiative = () => {
   const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value);
-  if (isNext) {
-    if (currentIndex < sortedIndices.value.length - 1) {
-      currentMonsterIndex.value = sortedIndices.value[currentIndex + 1];
-    } else {
-      triggerRoundBlink(() => {
-        currentMonsterIndex.value = sortedIndices.value[0];
-        currentRound.value++;
-      });
-    }
+  if (currentIndex < sortedIndices.value.length - 1) {
+    currentMonsterIndex.value = sortedIndices.value[currentIndex + 1];
   } else {
-    if (currentIndex > 0) {
-      currentMonsterIndex.value = sortedIndices.value[currentIndex - 1];
-    } else {
-      triggerRoundBlink(() => {
-        currentMonsterIndex.value = sortedIndices.value[sortedIndices.value.length - 1];
-        currentRound.value = Math.max(1, currentRound.value - 1);
-      });
-    }
+    triggerRoundBlink(() => {
+      currentMonsterIndex.value = sortedIndices.value[0];
+      currentRound.value++;
+    });
+  }
+  saveCombatMonsters();
+};
+
+const previousInInitiative = () => {
+  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value);
+  if (currentIndex > 0) {
+    currentMonsterIndex.value = sortedIndices.value[currentIndex - 1];
+  } else {
+    triggerRoundBlink(() => {
+      currentMonsterIndex.value = sortedIndices.value[sortedIndices.value.length - 1];
+      currentRound.value = Math.max(1, currentRound.value - 1);
+    });
   }
   saveCombatMonsters();
 };
@@ -159,31 +158,33 @@ const handleTouchEnd = (monster, event) => {
     <ol>
       <transition-group name="swipe" tag="ol">
         <li v-for="(monster, index) in store.combatMonsters" :key="monster.combatId"
-    @click="toggleDone(monster)"
-    @contextmenu="toggleInCombat(monster, $event)"
-    @touchstart="handleTouchStart"
-    @touchend="handleTouchEnd(monster, $event)"
-    class="static-class"
-    :class="{ 'swipe-right': monster.swipedRight, 'current-monster': isCombatActive && index === currentMonsterIndex }">
-  <div class="monster-info">
-    <div class="monster-header" :class="{ priority: monster.inCombat, strikeout: monster.done }">
-      <span class="monster-label">{{ monster.label }}</span>
-      <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
-    </div>
-    <div class="damage-container">
-      <input type="number" v-model.number="monster.initiative" @click.stop class="initiative-input"/>
-      <div class="roll-initiative" @click.stop="rollInitiative(monster)">
-        <img src="@/assets/d20.webp" alt="Roll initiative" class="d20-image"/>
-        <span class="roll-text">Roll initiative</span>
-      </div>
-      <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop
-             @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
-      <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">
-        Apply
-      </button>
-    </div>
-  </div>
-</li>
+            @click="toggleDone(monster)"
+            @contextmenu="toggleInCombat(monster, $event)"
+            @touchstart="handleTouchStart"
+            @touchend="handleTouchEnd(monster, $event)"
+            class="static-class"
+            :class="{ 'swipe-right': monster.swipedRight, 'current-monster': isCombatActive && index === currentMonsterIndex }">
+          <div class="monster-info">
+            <div class="monster-header" :class="{ priority: monster.inCombat, strikeout: monster.done }">
+              <div class="initiative-group">
+                <input type="number" v-model.number="monster.initiative" @click.stop class="initiative-input"/>
+                <div class="roll-initiative" @click.stop="rollInitiative(monster)">
+                  <img src="@/assets/d20.webp" alt="Roll initiative" class="d20-image"/>
+                  <span class="roll-text">Roll initiative</span>
+                </div>
+              </div>
+              <span class="monster-label">{{ monster.label }}</span>
+              <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
+            </div>
+            <div class="damage-container">
+              <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop
+                     @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
+              <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">
+                Apply
+              </button>
+            </div>
+          </div>
+        </li>
       </transition-group>
     </ol>
   </div>
@@ -191,13 +192,21 @@ const handleTouchEnd = (monster, event) => {
 
 <style scoped>
 @keyframes blink-out {
-  0% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes blink-in {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .round-blink-enter-active, .round-blink-leave-active {
@@ -278,7 +287,8 @@ li {
 
 .monster-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 1rem;
 }
 
 .monster-label {
@@ -312,25 +322,29 @@ li {
   margin-left: 10px;
 }
 
+.initiative-group {
+  font-size: 0.8rem; /* Smaller font size */
+}
 .initiative-input {
-  width: 3rem;
+  width: 2rem;
   text-align: center;
   margin-right: 0.5rem;
   background-color: #444; /* Dark background */
   color: white;
   border: 1px solid #555;
-  padding: 0.4rem;
+  padding: 0.2rem;
   border-radius: 5px;
 }
 
 .roll-initiative {
+  font-size: 0.8rem;
   position: relative;
   display: inline-block;
   cursor: pointer;
 }
 
 .d20-image {
-  width: 28px;
+  width: 20px;
   height: auto;
   filter: invert(0.3) sepia(1) saturate(3) hue-rotate(-25deg) drop-shadow(0 0 2px black);
   transition: filter 0.5s;
@@ -361,6 +375,22 @@ li {
 
 /* Media Queries */
 @media (min-width: 768px) {
+
+  .initiative-group {
+    font-size: 1rem; /* Default font size */
+  }
+  .initiative-input {
+    width: 3rem; /* Default width */
+    padding: 0.4rem; /* Default padding */
+  }
+
+  .roll-initiative {
+    font-size: 1rem; /* Default font size */
+  }
+
+  .d20-image {
+    width: 28px; /* Default image size */
+  }
   .combat-container {
     padding: 1.5rem;
   }

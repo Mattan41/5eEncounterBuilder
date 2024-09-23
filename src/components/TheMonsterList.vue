@@ -80,7 +80,8 @@ const toggleInCombat = (monster, event) => {
   <div class="monster-container container">
     <div class="header">
       <h1>{{ header }}</h1>
-      <button @click="doEdit(true)">Add Monster</button>
+      <button v-if="!editing" @click="doEdit(true)">Add Monster</button>
+      <button v-else @click="doEdit(false)">Cancel</button>
     </div>
     <form class="add-monsters-form" v-if="editing" @submit.prevent="saveMonster">
       <input v-model.trim="newMonster" type="text" placeholder="Monster Name">
@@ -119,7 +120,7 @@ const toggleInCombat = (monster, event) => {
     background-color: transparent;
   }
   50% {
-    background-color: #ff9100; /* Priority color */
+    background-color: #ff9100;
   }
 }
 
@@ -137,10 +138,6 @@ h3 {
 ul {
   list-style: none;
   padding: 0;
-}
-
-.priority {
-  color: #ff9100;
 }
 
 .monster-list-header {
