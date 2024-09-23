@@ -30,14 +30,14 @@ onMounted(async () => {
 
 const saveMonster = () => {
   const monster = {
-    id: store.monsters.length + 1,
+    id: monsters.value.length + 1,
     label: newMonster.value,
     challengeRating: parseFloat(newMonsterCR.value),
     hitPoints: newMonsterHP.value,
     done: false,
     inCombat: newMonsterInCombat.value
   }
-  store.monsters.push(monster)
+  monsters.value.push(monster)
   if (newMonsterInCombat.value) {
     store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0 })
     saveCombatMonsters()
@@ -83,7 +83,7 @@ const toggleInCombat = (monster, event) => {
     <form class="add-monsters-form" v-if="editing" @submit.prevent="saveMonster">
       <input v-model.trim="newMonster" type="text" placeholder="Monster Name">
       <input v-model.number="newMonsterHP" type="number" placeholder="Hit Points">
-      <input v-model.trim="newMonsterCR" type="text" placeholder="Challenge Rating">
+      <input v-model.number="newMonsterCR" type="number" step="any" placeholder="Challenge Rating">
       <label for="newMonster">
         <input v-model="newMonsterInCombat" type="checkbox"> Add to Combat
       </label>
