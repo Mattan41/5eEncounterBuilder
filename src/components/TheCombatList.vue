@@ -24,7 +24,6 @@ const toggleInCombat = (monster, event) => {
   monster.inCombat = !monster.inCombat;
 };
 
-
 const toggleCombat = () => {
   isCombatActive.value = !isCombatActive.value
   if (isCombatActive.value && !hasCombatStarted.value) {
@@ -96,7 +95,6 @@ const triggerRoundBlink = (callback) => {
   }, 500);
 };
 
-
 const resetCombat = () => {
   currentRound.value = 1
   currentMonsterIndex.value = 0
@@ -109,7 +107,6 @@ const resetCombat = () => {
   })
   saveCombatMonsters()
 }
-
 
 const applyDamage = (monster, damage) => {
   monster.hitPoints -= damage
@@ -191,8 +188,7 @@ const handleTouchEnd = (monster, event) => {
 </template>
 
 <style scoped>
-
-
+/* Animations */
 .round-blink-enter-active, .round-blink-leave-active {
   transition: opacity 0.5s;
 }
@@ -200,7 +196,10 @@ const handleTouchEnd = (monster, event) => {
 .round-blink-enter-from, .round-blink-leave-to {
   opacity: 0;
 }
-
+.header.pulsate {
+  animation: pulsate 3s infinite;
+  will-change: border-color;
+}
 /* General Styles */
 .header {
   display: grid;
@@ -227,10 +226,6 @@ const handleTouchEnd = (monster, event) => {
   gap: 0.5rem;
 }
 
-.header.pulsate {
-  animation: pulsate 3s infinite;
-  will-change: border-color;
-}
 
 h2 {
   position: relative;
