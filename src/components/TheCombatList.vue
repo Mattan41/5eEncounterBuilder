@@ -1,6 +1,9 @@
 <script setup>
 import {store} from '../store.js'
 import {computed, ref} from 'vue'
+import { defineEmits } from 'vue'
+
+const emit = defineEmits(['updateCount'])
 
 const startX = ref(0)
 const endX = ref(0)
@@ -9,11 +12,8 @@ const currentRound = ref(1)
 const currentMonsterIndex = ref(0)
 const hasCombatStarted = ref(false)
 
-const toggleDone = (monster) => {
-  monster.done = !monster.done
-}
-
 //Handles count of monsters of same type in combat
+
 const toggleInCombat = (monster, event) => {
   event.preventDefault()
   monster.inCombat = !monster.inCombat
@@ -24,14 +24,14 @@ const toggleInCombat = (monster, event) => {
       const originalMonster = store.monsters.find(m => m.id === monster.id)
       if (originalMonster) {
         originalMonster.count--
+        emit('updateCount', originalMonster.id, originalMonster.count)
         if (originalMonster.count === 0) {
-          originalMonster.inCombat = false;
+          originalMonster.inCombat = false
         }
       }
     }
   }
 }
-
 const toggleCombat = () => {
   isCombatActive.value = !isCombatActive.value
   if (isCombatActive.value && !hasCombatStarted.value) {
@@ -39,6 +39,10 @@ const toggleCombat = () => {
         monster.initiative > monsters[maxIndex].initiative ? index : maxIndex, 0)
     hasCombatStarted.value = true
   }
+}
+
+const toggleDone = (monster) => {
+  monster.done = !monster.done
 }
 
 const rollInitiative = (monster) => {

@@ -2,12 +2,20 @@
 import TheMonsterList from './components/TheMonsterList.vue'
 import TheCombatList from './components/TheCombatList.vue'
 import AppHeader from './components/AppHeader.vue'
+import { store } from './store.js'
 import {ref} from "vue";
 
 const showMonsterList = ref(false)
 
 const toggleMonsterList = () => {
   showMonsterList.value = !showMonsterList.value
+}
+
+const handleUpdateCount = (id, count) => {
+  const monster = store.monsters.find(m => m.id === id)
+  if (monster) {
+    monster.count = count
+  }
 }
 </script>
 
@@ -16,8 +24,8 @@ const toggleMonsterList = () => {
     <AppHeader :showMonsterList="showMonsterList" @toggleMonsterList="toggleMonsterList"/>
   </header>
   <main :class="{ 'single-column': !showMonsterList }">
-    <TheMonsterList v-show="showMonsterList" addMonsterButton="add monster"/>
-    <TheCombatList/>
+    <TheMonsterList v-show="showMonsterList" :monsters="store.monsters"/>
+    <TheCombatList @updateCount="handleUpdateCount"/>
   </main>
 </template>
 

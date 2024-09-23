@@ -4,10 +4,7 @@ import {store} from '../store.js'
 
 // props
 defineProps({
-  addMonsterButton: {
-    type: String,
-    default: 'add monsters'
-  }
+  monsters: Array
 });
 
 const header = ref('Monster List')
@@ -48,7 +45,6 @@ const saveMonster = () => {
   store.monsters.push(monster)
   if (newMonsterInCombat.value) {
     store.combatMonsters.push({ ...monster, combatId: Date.now() })
-    monster.count++
   }
   newMonster.value = ""
   newMonsterHP.value = null
@@ -64,7 +60,6 @@ const doEdit = (e) => {
   newMonsterInCombat.value = false
 }
 // Add/remove monster on combatList
-
 const toggleInCombat = (monster, event) => {
   event.preventDefault()
   if (event.type === 'click') {
@@ -86,7 +81,7 @@ const toggleInCombat = (monster, event) => {
         Cancel
       </button>
       <button v-else class="btn btn-primary" @click="doEdit(true)">
-        {{ addMonsterButton }}
+        Add monster
       </button>
     </div>
     <form class="add-monsters-form" v-if="editing" @submit.prevent="saveMonster">
@@ -107,7 +102,7 @@ const toggleInCombat = (monster, event) => {
       <span>HP</span>
     </h3>
     <ul>
-      <li v-for="(monster, index) in store.monsters" @click="toggleInCombat(monster, $event)"
+      <li v-for="(monster, index) in monsters" @click="toggleInCombat(monster, $event)"
           :key="monster.id" class="static-class"
           :class="{ priority: monster.inCombat }">
         <span>({{ monster.count }}) {{monster.label }}</span>
@@ -122,6 +117,7 @@ const toggleInCombat = (monster, event) => {
 h1 {
   position: relative;
   border-bottom: solid 1px #292929;
+  margin-bottom: 10px;
 }
 h3 {
   position: relative;
