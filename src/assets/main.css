@@ -31,7 +31,14 @@
         opacity: 1;
     }
 }
-
+@keyframes blink-animation {
+    0%, 100% {
+        background-color: transparent;
+    }
+    50% {
+        background-color: #ff9100;
+    }
+}
 body {
     font-size: 15px;
     background-color: #181818;

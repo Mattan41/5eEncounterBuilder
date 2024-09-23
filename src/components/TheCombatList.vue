@@ -18,7 +18,12 @@ const toggleInCombat = (monster, event) => {
     store.combatMonsters.splice(index, 1);
     saveCombatMonsters();
   } else {
-    store.combatMonsters.push({...monster, combatId: Date.now(), initiative: 0});
+    store.combatMonsters.push({
+      ...monster,
+      combatId: Date.now(),
+      initiative: 0,
+      originalHitPoints: monster.hitPoints // Save original HP
+    });
     saveCombatMonsters();
   }
   monster.inCombat = !monster.inCombat;
@@ -96,17 +101,18 @@ const triggerRoundBlink = (callback) => {
 };
 
 const resetCombat = () => {
-  currentRound.value = 1
-  currentMonsterIndex.value = 0
-  isCombatActive.value = false
-  hasCombatStarted.value = false
+  currentRound.value = 1;
+  currentMonsterIndex.value = 0;
+  isCombatActive.value = false;
+  hasCombatStarted.value = false;
   store.combatMonsters.forEach(monster => {
-    monster.initiative = 0
-    monster.done = false
-    monster.inCombat = false
-  })
-  saveCombatMonsters()
-}
+    monster.initiative = 0;
+    monster.done = false;
+    monster.inCombat = false;
+    monster.hitPoints = monster.originalHitPoints; // Reset HP to original value
+  });
+  saveCombatMonsters();
+};
 
 const applyDamage = (monster, damage) => {
   monster.hitPoints -= damage

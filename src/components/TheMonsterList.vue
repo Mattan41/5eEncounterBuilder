@@ -20,6 +20,7 @@ onMounted(async () => {
       label: monster.name,
       challengeRating: parseFloat(monster.challenge_rating),
       hitPoints: monster.hit_points,
+      originalHitPoints: monster.hit_points,
       done: false,
       inCombat: false
     }))
@@ -34,6 +35,7 @@ const saveMonster = () => {
     label: newMonster.value,
     challengeRating: parseFloat(newMonsterCR.value),
     hitPoints: newMonsterHP.value,
+    originalHitPoints: newMonsterHP.value,
     done: false,
     inCombat: newMonsterInCombat.value
   }
@@ -112,14 +114,6 @@ const toggleInCombat = (monster, event) => {
   animation: blink-animation 1s;
 }
 
-@keyframes blink-animation {
-  0%, 100% {
-    background-color: transparent;
-  }
-  50% {
-    background-color: #ff9100;
-  }
-}
 
 /* Other styles */
 h1 {
