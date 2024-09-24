@@ -1,7 +1,6 @@
 <script setup>
-import {saveCombatMonsters, store} from '../store.js'
-import {computed, ref} from 'vue'
-
+import { saveCombatMonsters, store } from '../store.js'
+import { computed, ref } from 'vue'
 
 const startX = ref(0)
 const endX = ref(0)
@@ -9,31 +8,29 @@ const isCombatActive = ref(false)
 const currentRound = ref(1)
 const currentMonsterIndex = ref(0)
 const hasCombatStarted = ref(false)
-const isRoundBlinking = ref(false);
+const isRoundBlinking = ref(false)
 
 const toggleInCombat = (monster, event) => {
-  event.preventDefault();
-  const index = store.combatMonsters.findIndex(m => m.combatId === monster.combatId);
+  event.preventDefault()
+  const index = store.combatMonsters.findIndex(m => m.combatId === monster.combatId)
   if (index !== -1) {
-    store.combatMonsters.splice(index, 1);
-    saveCombatMonsters();
+    store.combatMonsters.splice(index, 1)
   } else {
     store.combatMonsters.push({
       ...monster,
       combatId: Date.now(),
       initiative: 0,
       originalHitPoints: monster.hitPoints // Save original HP
-    });
-    saveCombatMonsters();
+    })
   }
-  monster.inCombat = !monster.inCombat;
-};
+  saveCombatMonsters()
+}
 
 const toggleCombat = () => {
   isCombatActive.value = !isCombatActive.value
   if (isCombatActive.value && !hasCombatStarted.value) {
     currentMonsterIndex.value = store.combatMonsters.reduce((maxIndex, monster, index, monsters) =>
-        monster.initiative > monsters[maxIndex].initiative ? index : maxIndex, 0)
+      monster.initiative > monsters[maxIndex].initiative ? index : maxIndex, 0)
     hasCombatStarted.value = true
   }
 }
@@ -45,6 +42,7 @@ const toggleDone = (monster) => {
 const rollInitiative = (monster) => {
   monster.initiative = Math.floor(Math.random() * 20) + 1
 }
+
 const rollAllInitiatives = () => {
   store.combatMonsters.forEach(monster => {
     rollInitiative(monster)
@@ -52,67 +50,64 @@ const rollAllInitiatives = () => {
   saveCombatMonsters()
 }
 
-//Sort the list displayed by initiative
 const sortByInitiative = () => {
   store.combatMonsters.sort((a, b) => b.initiative - a.initiative)
   saveCombatMonsters()
 }
 
-//Computed property to get the sorted indices
 const sortedIndices = computed(() => {
   return store.combatMonsters
-      .map((monster, index) => ({index, initiative: monster.initiative}))
-      .sort((a, b) => b.initiative - a.initiative)
-      .map(item => item.index)
+    .map((monster, index) => ({ index, initiative: monster.initiative }))
+    .sort((a, b) => b.initiative - a.initiative)
+    .map(item => item.index)
 })
 
 const nextInInitiative = () => {
-  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value);
+  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value)
   if (currentIndex < sortedIndices.value.length - 1) {
-    currentMonsterIndex.value = sortedIndices.value[currentIndex + 1];
+    currentMonsterIndex.value = sortedIndices.value[currentIndex + 1]
   } else {
     triggerRoundBlink(() => {
-      currentMonsterIndex.value = sortedIndices.value[0];
-      currentRound.value++;
-    });
+      currentMonsterIndex.value = sortedIndices.value[0]
+      currentRound.value++
+    })
   }
-  saveCombatMonsters();
-};
+  saveCombatMonsters()
+}
 
 const previousInInitiative = () => {
-  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value);
+  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value)
   if (currentIndex > 0) {
-    currentMonsterIndex.value = sortedIndices.value[currentIndex - 1];
+    currentMonsterIndex.value = sortedIndices.value[currentIndex - 1]
   } else {
     triggerRoundBlink(() => {
-      currentMonsterIndex.value = sortedIndices.value[sortedIndices.value.length - 1];
-      currentRound.value = Math.max(1, currentRound.value - 1);
-    });
+      currentMonsterIndex.value = sortedIndices.value[sortedIndices.value.length - 1]
+      currentRound.value = Math.max(1, currentRound.value - 1)
+    })
   }
-  saveCombatMonsters();
-};
+  saveCombatMonsters()
+}
 
 const triggerRoundBlink = (callback) => {
-  isRoundBlinking.value = true;
+  isRoundBlinking.value = true
   setTimeout(() => {
-    if (callback) callback();
-    isRoundBlinking.value = false;
-  }, 500);
-};
+    if (callback) callback()
+    isRoundBlinking.value = false
+  }, 500)
+}
 
 const resetCombat = () => {
-  currentRound.value = 1;
-  currentMonsterIndex.value = 0;
-  isCombatActive.value = false;
-  hasCombatStarted.value = false;
+  currentRound.value = 1
+  currentMonsterIndex.value = 0
+  isCombatActive.value = false
+  hasCombatStarted.value = false
   store.combatMonsters.forEach(monster => {
-    monster.initiative = 0;
-    monster.done = false;
-    monster.inCombat = false;
-    monster.hitPoints = monster.originalHitPoints; // Reset HP to original value
-  });
-  saveCombatMonsters();
-};
+    monster.initiative = 0
+    monster.done = false
+    monster.hitPoints = monster.originalHitPoints // Reset HP to original value
+  })
+  saveCombatMonsters()
+}
 
 const applyDamage = (monster, damage) => {
   monster.hitPoints -= damage
@@ -120,7 +115,6 @@ const applyDamage = (monster, damage) => {
   monster.damage = null // Reset the input field
   saveCombatMonsters()
 }
-
 
 const handleTouchStart = (event) => {
   startX.value = event.touches[0].clientX
@@ -136,7 +130,6 @@ const handleTouchEnd = (monster, event) => {
     }, 50)
   }
 }
-
 </script>
 <template>
   <div class="combat-container container">

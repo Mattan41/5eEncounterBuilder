@@ -21,8 +21,7 @@ onMounted(async () => {
       challengeRating: parseFloat(monster.challenge_rating),
       hitPoints: monster.hit_points,
       originalHitPoints: monster.hit_points,
-      done: false,
-      inCombat: false
+      done: false
     }))
   } catch (error) {
     console.log('Error fetching monsters', error)
@@ -36,8 +35,7 @@ const saveMonster = () => {
     challengeRating: parseFloat(newMonsterCR.value),
     hitPoints: newMonsterHP.value,
     originalHitPoints: newMonsterHP.value,
-    done: false,
-    inCombat: newMonsterInCombat.value
+    done: false
   }
   monsters.value.push(monster)
   if (newMonsterInCombat.value) {
