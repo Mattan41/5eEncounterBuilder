@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { saveCombatMonsters, store } from '../store.js'
+import {ref, onMounted} from 'vue'
+import {saveCombatMonsters, store} from '../store.js'
 
 
 const monsters = ref([])
@@ -21,7 +21,6 @@ onMounted(async () => {
       challengeRating: parseFloat(monster.challenge_rating),
       hitPoints: monster.hit_points,
       originalHitPoints: monster.hit_points,
-      done: false
     }))
   } catch (error) {
     console.log('Error fetching monsters', error)
@@ -35,21 +34,12 @@ const saveMonster = () => {
     challengeRating: parseFloat(newMonsterCR.value),
     hitPoints: newMonsterHP.value,
     originalHitPoints: newMonsterHP.value,
-    done: false
   }
   monsters.value.push(monster)
   if (newMonsterInCombat.value) {
-    store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0 })
+    store.combatMonsters.push({...monster, combatId: Date.now(), initiative: 0, done: false})
     saveCombatMonsters()
   }
-  newMonster.value = ""
-  newMonsterHP.value = null
-  newMonsterCR.value = ""
-  newMonsterInCombat.value = false
-}
-
-const doEdit = (e) => {
-  editing.value = e
   newMonster.value = ""
   newMonsterHP.value = null
   newMonsterCR.value = ""
@@ -60,7 +50,7 @@ const doEdit = (e) => {
 const addToCombatList = (monster, event) => {
   event.preventDefault()
   if (event.type === 'click') {
-    store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0 })
+    store.combatMonsters.push({...monster, combatId: Date.now(), initiative: 0, done: false})
     saveCombatMonsters()
     // Add blinking effect
     const listItem = event.currentTarget
@@ -69,6 +59,14 @@ const addToCombatList = (monster, event) => {
       listItem.classList.remove('blink')
     }, 1000)
   }
+}
+
+const doEdit = (e) => {
+  editing.value = e
+  newMonster.value = ""
+  newMonsterHP.value = null
+  newMonsterCR.value = ""
+  newMonsterInCombat.value = false
 }
 </script>
 
@@ -118,6 +116,7 @@ h1 {
   border-bottom: solid 1px #292929;
   margin-bottom: 10px;
 }
+
 h3 {
   position: relative;
   border-bottom: 2px solid #ccc;
@@ -137,17 +136,18 @@ ul {
 
 /* Monster name*/
 .monster-list-header span:first-child {
-  flex-grow: 2; 
+  flex-grow: 2;
   text-align: left;
 }
 
 /*CR*/
 .monster-list-header span:nth-child(2) {
   flex-grow: 1;
-  margin-left: auto; 
+  margin-left: auto;
   padding-left: 1rem;
   text-align: center;
 }
+
 /*HP*/
 .monster-list-header span:last-child {
   flex-grow: 1;
@@ -178,6 +178,7 @@ li span:nth-child(2) {
   flex-grow: 1;
   margin-left: 1rem;
 }
+
 /*HP*/
 li span:last-child {
   text-align: right;
@@ -194,6 +195,7 @@ li span:last-child {
   flex-direction: column;
   gap: 0.5rem;
 }
+
 .add-monsters-form input {
   padding: 0.5rem;
   border-radius: 5px;
