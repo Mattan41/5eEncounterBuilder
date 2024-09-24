@@ -62,7 +62,6 @@ const doEdit = (e) => {
 const toggleInCombat = (monster, event) => {
   event.preventDefault()
   if (event.type === 'click') {
-    // Always add a new instance of the monster to the combat list
     store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0 })
     saveCombatMonsters()
     // Add blinking effect
@@ -137,18 +136,21 @@ ul {
   font-weight: bold;
   margin-bottom: 10px;
 }
+
+/* Monster name*/
 .monster-list-header span:first-child {
-  flex-grow: 2; /* Increase space for the monster name */
+  flex-grow: 2; 
   text-align: left;
 }
 
+/*CR*/
 .monster-list-header span:nth-child(2) {
   flex-grow: 1;
-  margin-left: auto; /* Push CR to the right */
-  padding-left: 1rem; /* Optional: Add padding for better spacing */
+  margin-left: auto; 
+  padding-left: 1rem;
   text-align: center;
 }
-
+/*HP*/
 .monster-list-header span:last-child {
   flex-grow: 1;
   text-align: right;
@@ -164,19 +166,21 @@ li span {
   text-align: center;
 }
 
+/* Monster name*/
 li span:first-child {
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex-grow: 2; /* Increase space for the monster name */
+  flex-grow: 2;
 }
 
+/*CR*/
 li span:nth-child(2) {
   flex-grow: 1;
-  margin-left: 1rem; /* Adjust the margin to move CR to the right */
+  margin-left: 1rem;
 }
-
+/*HP*/
 li span:last-child {
   text-align: right;
 }
