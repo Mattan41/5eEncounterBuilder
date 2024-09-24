@@ -56,8 +56,8 @@ const doEdit = (e) => {
   newMonsterInCombat.value = false
 }
 
-// Add/remove monster on combatList
-const toggleInCombat = (monster, event) => {
+// Add monster on combatList
+const addToCombatList = (monster, event) => {
   event.preventDefault()
   if (event.type === 'click') {
     store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0 })
@@ -96,7 +96,7 @@ const toggleInCombat = (monster, event) => {
       <span>HP</span>
     </h3>
     <ul>
-      <li v-for="(monster, index) in monsters" @click="toggleInCombat(monster, $event)" :key="monster.id">
+      <li v-for="(monster, index) in monsters" @click="addToCombatList(monster, $event)" :key="monster.id">
         <span>{{ monster.label }}</span>
         <span>{{ monster.challengeRating }}</span>
         <span>{{ monster.hitPoints }}</span>

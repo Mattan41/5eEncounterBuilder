@@ -1,6 +1,6 @@
 <script setup>
-import { saveCombatMonsters, store } from '../store.js'
-import { computed, ref } from 'vue'
+import {saveCombatMonsters, store} from '../store.js'
+import {computed, ref} from 'vue'
 
 const startX = ref(0)
 const endX = ref(0)
@@ -10,27 +10,22 @@ const currentMonsterIndex = ref(0)
 const hasCombatStarted = ref(false)
 const isRoundBlinking = ref(false)
 
-const toggleInCombat = (monster, event) => {
+
+const removeFromCombatList = (monster, event) => {
   event.preventDefault()
   const index = store.combatMonsters.findIndex(m => m.combatId === monster.combatId)
   if (index !== -1) {
     store.combatMonsters.splice(index, 1)
-  } else {
-    store.combatMonsters.push({
-      ...monster,
-      combatId: Date.now(),
-      initiative: 0,
-      originalHitPoints: monster.hitPoints // Save original HP
-    })
   }
   saveCombatMonsters()
 }
 
+//start/pause combat
 const toggleCombat = () => {
   isCombatActive.value = !isCombatActive.value
   if (isCombatActive.value && !hasCombatStarted.value) {
     currentMonsterIndex.value = store.combatMonsters.reduce((maxIndex, monster, index, monsters) =>
-      monster.initiative > monsters[maxIndex].initiative ? index : maxIndex, 0)
+        monster.initiative > monsters[maxIndex].initiative ? index : maxIndex, 0)
     hasCombatStarted.value = true
   }
 }
@@ -57,9 +52,9 @@ const sortByInitiative = () => {
 
 const sortedIndices = computed(() => {
   return store.combatMonsters
-    .map((monster, index) => ({ index, initiative: monster.initiative }))
-    .sort((a, b) => b.initiative - a.initiative)
-    .map(item => item.index)
+      .map((monster, index) => ({index, initiative: monster.initiative}))
+      .sort((a, b) => b.initiative - a.initiative)
+      .map(item => item.index)
 })
 
 const nextInInitiative = () => {
@@ -125,7 +120,7 @@ const handleTouchEnd = (monster, event) => {
   if (startX.value < endX.value - 50) {
     monster.swipedRight = true
     setTimeout(() => {
-      toggleInCombat(monster, event)
+      removeFromCombatList(monster, event)
       saveCombatMonsters()
     }, 50)
   }
@@ -155,7 +150,7 @@ const handleTouchEnd = (monster, event) => {
       <transition-group name="swipe" tag="ol">
         <li v-for="(monster, index) in store.combatMonsters" :key="monster.combatId"
             @click="toggleDone(monster)"
-            @contextmenu="toggleInCombat(monster, $event)"
+            @contextmenu="removeFromCombatList(monster, $event)"
             @touchstart="handleTouchStart"
             @touchend="handleTouchEnd(monster, $event)"
             class="static-class"
@@ -195,10 +190,12 @@ const handleTouchEnd = (monster, event) => {
 .round-blink-enter-from, .round-blink-leave-to {
   opacity: 0;
 }
+
 .header.pulsate {
   animation: pulsate 3s infinite;
   will-change: border-color;
 }
+
 /* General Styles */
 .header {
   display: grid;
@@ -303,6 +300,7 @@ li {
 .initiative-group {
   font-size: 0.8rem; /* Smaller font size */
 }
+
 .initiative-input {
   width: 2rem;
   text-align: center;
@@ -357,6 +355,7 @@ li {
   .initiative-group {
     font-size: 1rem; /* Default font size */
   }
+
   .initiative-input {
     width: 3rem; /* Default width */
     padding: 0.4rem; /* Default padding */
@@ -369,6 +368,7 @@ li {
   .d20-image {
     width: 28px; /* Default image size */
   }
+
   .combat-container {
     padding: 1.5rem;
   }
