@@ -178,9 +178,9 @@ const handleTouchEnd = (monster, event) => {
         </li>
       </transition-group>
     </ol>
+    <div v-if="isRoundBlinking" class="overlay"></div>
   </div>
 </template>
-
 <style scoped>
 /* Animations */
 .round-blink-enter-active, .round-blink-leave-active {
@@ -405,5 +405,15 @@ li {
   li {
     padding: 1rem;
   }
+}
+
+/* Overlay styles */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
 }
 </style>
