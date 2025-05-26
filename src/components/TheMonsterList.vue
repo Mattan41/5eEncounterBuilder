@@ -42,12 +42,16 @@ const searchMonsters = async (resetResults = true) => {
 
     // Bygg query string
     let queryParams = new URLSearchParams({
-      search: searchQuery.value,
+      //search: searchQuery.value,
       limit: resultsPerPage,
       offset: offset,
       ordering: sortOrder.value === 'desc' ? `-${sortBy.value}` : sortBy.value
     })
 
+    // Lägg till sökfråga
+    if (searchQuery.value) {
+      queryParams.append('name__icontains', searchQuery.value);
+    }
     // Lägg till filter
     if (selectedCR.value) {
       queryParams.append('challenge_rating__gte', selectedCR.value)
@@ -68,18 +72,23 @@ const searchMonsters = async (resetResults = true) => {
     totalResults.value = data.count
     hasMoreResults.value = data.next !== null
 
+
     const newMonsters = data.results.map((monster, index) => ({
-      id: `api_${offset + index}`,
+      // API data (behåll originalet för CreatureModal!)
+      ...monster,
+
+      // Legacy fields för combat system compatibility
+      id: `api_${monster.slug || offset + index}`,
       label: monster.name,
-      challengeRating: parseFloat(monster.challenge_rating),
+      challengeRating: parseFloat(monster.challenge_rating || 0),
       hitPoints: monster.hit_points,
       originalHitPoints: monster.hit_points,
-      type: monster.type,
-      size: monster.size,
       armorClass: monster.armor_class,
-      document: monster.document__title || 'Unknown'
-    }))
+      document: monster.document__title || 'Unknown',
 
+      // Markera som API monster
+      source: 'open5e'
+    }))
     if (resetResults) {
       monsters.value = newMonsters
     } else {

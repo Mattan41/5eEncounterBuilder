@@ -1,10 +1,16 @@
 <script setup>
-import { saveCombatMonsters, store, removeFromFavorites } from '../store.js'
+import {ref} from 'vue'
+import {removeFromFavorites, saveCombatMonsters, store} from '../store.js'
+import CreatureModal from '@/modals/CreatureModal.vue'
+
+const showCreatureModal = ref(false)
+const selectedCreature = ref(null)
+
 
 const addToCombatList = (monster, event) => {
   event.preventDefault()
   if (event.type === 'click') {
-    store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0, done: false })
+    store.combatMonsters.push({...monster, combatId: Date.now(), initiative: 0, done: false})
     saveCombatMonsters()
 
     const listItem = event.currentTarget
@@ -21,9 +27,21 @@ const removeFromFavoriteList = (monster, event) => {
   removeFromFavorites(monster)
 }
 
+const showCreatureDetails = (monster, event) => {
+  event.preventDefault()
+  event.stopPropagation()
+  selectedCreature.value = monster
+  showCreatureModal.value = true
+}
+
+const closeCreatureModal = () => {
+  showCreatureModal.value = false
+  selectedCreature.value = null
+}
+
 const exportFavorites = () => {
   const dataStr = JSON.stringify(store.favoriteMonsters, null, 2)
-  const dataBlob = new Blob([dataStr], { type: 'application/json' })
+  const dataBlob = new Blob([dataStr], {type: 'application/json'})
 
   const link = document.createElement('a')
   link.href = URL.createObjectURL(dataBlob)
@@ -49,7 +67,9 @@ const exportFavorites = () => {
 
     <div v-else class="favorites-content">
       <div class="favorite-stats">
-        <span class="favorite-count">{{ store.favoriteMonsters.length }} favorite{{ store.favoriteMonsters.length !== 1 ? 's' : '' }}</span>
+        <span class="favorite-count">{{
+            store.favoriteMonsters.length
+          }} favorite{{ store.favoriteMonsters.length !== 1 ? 's' : '' }}</span>
         <span class="click-hint">Click to add to combat</span>
       </div>
 
@@ -58,7 +78,7 @@ const exportFavorites = () => {
         <span>Type</span>
         <span>CR</span>
         <span>HP</span>
-        <span></span>
+        <span>Actions</span>
       </div>
 
       <div class="favorites-scroll-container">
@@ -73,6 +93,12 @@ const exportFavorites = () => {
             <span class="monster-hp">{{ monster.hitPoints }}</span>
             <span class="monster-actions">
               <button
+                  @click="showCreatureDetails(monster, $event)"
+                  class="info-btn"
+                  title="Show creature details">
+                ℹ️
+              </button>
+              <button
                   @click="removeFromFavoriteList(monster, $event)"
                   class="remove-btn"
                   title="Remove from favorites">
@@ -82,12 +108,16 @@ const exportFavorites = () => {
           </li>
         </ul>
       </div>
+      <CreatureModal
+          :show="showCreatureModal"
+          :creature="selectedCreature"
+          @close="closeCreatureModal"
+      />
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Huvudcontainer med orange/guld tema */
 .favorite-container {
   background: linear-gradient(135deg, #2a2419 0%, #1a1a1a 100%);
   border: 1px solid #8b6914;
@@ -152,6 +182,36 @@ const exportFavorites = () => {
 .empty-state small {
   color: #999;
   font-style: italic;
+}
+
+/* Actions buttons */
+.monster-actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.info-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #4CAF50;
+  padding: 0.25rem;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-btn:hover {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #66BB6A;
+  transform: scale(1.1);
 }
 
 /* Favorites content */
@@ -306,8 +366,12 @@ ul {
 
 /* Blink animation */
 @keyframes blink {
-  0%, 100% { background-color: rgba(255, 165, 0, 0.05); }
-  50% { background-color: rgba(255, 165, 0, 0.3); }
+  0%, 100% {
+    background-color: rgba(255, 165, 0, 0.05);
+  }
+  50% {
+    background-color: rgba(255, 165, 0, 0.3);
+  }
 }
 
 .blink {
