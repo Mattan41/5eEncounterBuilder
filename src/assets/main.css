@@ -376,3 +376,12 @@ input:focus, select:focus, textarea:focus {
         padding: 1rem;
     }
 }
+
+/* Hide  standard numbering for mobile */
+@media (max-width: 767px) {
+    ol {
+        list-style: none;
+        padding-left: 0;
+    }
+}
+

@@ -146,6 +146,7 @@ const handleTouchEnd = (monster, event) => {
         <button @click="resetCombat">Reset combat</button>
       </div>
     </div>
+
     <ol>
       <transition-group name="swipe" tag="ol">
         <li v-for="(monster, index) in store.combatMonsters" :key="monster.combatId"
@@ -153,8 +154,11 @@ const handleTouchEnd = (monster, event) => {
             @contextmenu="removeFromCombatList(monster, $event)"
             @touchstart="handleTouchStart"
             @touchend="handleTouchEnd(monster, $event)"
-            class="static-class"
-            :class="{ 'swipe-right': monster.swipedRight, 'current-monster': isCombatActive && index === currentMonsterIndex }">
+            :class="{
+              'swipe-right': monster.swipedRight,
+              'current-monster': isCombatActive && index === currentMonsterIndex
+            }">
+
           <div class="monster-info">
             <div class="monster-header" :class="{strikeout: monster.done }">
               <div class="initiative-group">
@@ -167,6 +171,7 @@ const handleTouchEnd = (monster, event) => {
               <span class="monster-label">{{ monster.label }}</span>
               <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
             </div>
+
             <div class="damage-container">
               <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop
                      @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
@@ -178,11 +183,12 @@ const handleTouchEnd = (monster, event) => {
         </li>
       </transition-group>
     </ol>
+
     <div v-if="isRoundBlinking" class="overlay"></div>
   </div>
 </template>
 <style scoped>
-/* Combat-specifika animationer */
+/* Animations från den gamla */
 .round-blink-enter-active, .round-blink-leave-active {
   transition: opacity 0.5s;
 }
@@ -191,12 +197,7 @@ const handleTouchEnd = (monster, event) => {
   opacity: 0;
 }
 
-.header.pulsate {
-  animation: pulsate 3s infinite;
-  will-change: border-color;
-}
-
-/* Combat-specifik layout */
+/* Header layout - den gamla strukturen */
 .header {
   display: grid;
   align-items: center;
@@ -211,32 +212,26 @@ const handleTouchEnd = (monster, event) => {
   width: 100%;
 }
 
-.buttons, .sub-buttons {
+.buttons {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
-/* Combat-specifika stilar */
-.combat-container h2 {
+.sub-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+h2 {
   position: relative;
   top: -10px;
   color: #FFD700;
+  margin: 0;
 }
 
-.combat-container li {
-  color: #FFD700;
-}
-
-.current-monster {
-  background-color: rgba(255, 255, 0, 0.2);
-}
-
-.strikeout {
-  text-decoration: line-through;
-  color: #555555;
-}
-
-/* Monster layout */
+/* Monster layout - behåll den gamla mobilstrukturen */
 .monster-info {
   display: flex;
   flex-direction: column;
@@ -247,6 +242,7 @@ const handleTouchEnd = (monster, event) => {
   display: flex;
   justify-content: flex-start;
   gap: 1rem;
+  align-items: center;
 }
 
 .monster-label {
@@ -254,6 +250,7 @@ const handleTouchEnd = (monster, event) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
 }
 
 .monster-hp {
@@ -261,14 +258,10 @@ const handleTouchEnd = (monster, event) => {
   white-space: nowrap;
 }
 
-.damage-container {
+/* Initiative styling - den gamla layouten */
+.initiative-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-/* Initiative specifika stilar */
-.initiative-group {
   font-size: 0.8rem;
 }
 
@@ -276,11 +269,14 @@ const handleTouchEnd = (monster, event) => {
   width: 2rem;
   text-align: center;
   margin-right: 0.5rem;
+  background-color: #444;
+  color: white;
+  border: 1px solid #555;
   padding: 0.2rem;
   border-radius: 5px;
 }
 
-/* D20 roll tooltip */
+/* D20 och tooltip från den gamla */
 .roll-initiative {
   font-size: 0.8rem;
   position: relative;
@@ -318,17 +314,51 @@ const handleTouchEnd = (monster, event) => {
   opacity: 1;
 }
 
-/* Overlay för round blinking */
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1000;
+/* Damage container */
+.damage-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-/* Responsive justeringar */
+.damage-input {
+  background-color: #444;
+  color: white;
+  border: 1px solid #555;
+  padding: 0.4rem;
+  border-radius: 5px;
+  flex: 1;
+}
+
+.apply-button {
+  padding: 0.4rem;
+  white-space: nowrap;
+}
+
+/* Combat states */
+.strikeout {
+  text-decoration: line-through;
+  color: #555555;
+}
+
+.current-monster {
+  background-color: rgba(255, 255, 0, 0.2);
+  border-left: 4px solid #FFD700;
+}
+
+/* Swipe animation */
+.swipe-right {
+  animation: swipeRight 0.5s forwards;
+}
+
+@keyframes swipeRight {
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Responsive design - den gamla approachen */
 @media (min-width: 768px) {
   .initiative-group {
     font-size: 1rem;
@@ -358,5 +388,15 @@ const handleTouchEnd = (monster, event) => {
   .monster-header {
     gap: 1rem;
   }
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
 }
 </style>

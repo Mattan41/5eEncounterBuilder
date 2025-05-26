@@ -7,9 +7,13 @@ defineProps({
   showFavoriteList: {
     type: Boolean,
     required: true
+  },
+  showCombatEncounter: {
+    type: Boolean,
+    required: true
   }
 })
-defineEmits(['toggleMonsterList', 'toggleFavoriteList']);
+defineEmits(['toggleMonsterList', 'toggleFavoriteList', 'toggleCombatEncounter']);
 </script>
 
 <template>
@@ -23,6 +27,10 @@ defineEmits(['toggleMonsterList', 'toggleFavoriteList']);
       <button @click="$emit('toggleFavoriteList')">
         <span class="button-text">{{ showFavoriteList ? 'Hide Favorites' : 'Show Favorites' }}</span>
         <span class="button-text-mobile">Favorites</span>
+      </button>
+      <button @click="$emit('toggleCombatEncounter')">
+        <span class="button-text">{{ showCombatEncounter ? 'Hide Combat' : 'Show Combat' }}</span>
+        <span class="button-text-mobile">Combat</span>
       </button>
     </div>
   </div>
@@ -50,6 +58,7 @@ defineEmits(['toggleMonsterList', 'toggleFavoriteList']);
 .button-group {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 /* Responsiv text för buttons */
@@ -68,6 +77,22 @@ defineEmits(['toggleMonsterList', 'toggleFavoriteList']);
 
   .button-text-mobile {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .app-title {
+    font-size: 1.3rem;
+  }
+
+  .button-group {
+    justify-content: center;
   }
 }
 </style>
