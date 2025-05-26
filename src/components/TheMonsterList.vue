@@ -2,10 +2,11 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { saveCombatMonsters, store, addToFavorites } from '../store.js'
 import MonsterSearch from "@/components/MonsterSearch.vue"
+import AddMonsterModal from "@/modals/AddMonsterModal.vue"
 
 const monsters = ref([])
 const header = ref('Monster List')
-const editing = ref(false)
+const showAddModal = ref(false)
 
 // Search & filter states
 const searchQuery = ref('')
@@ -18,12 +19,6 @@ const selectedDocument = ref('')
 // Sorting states
 const sortBy = ref('name')
 const sortOrder = ref('asc')
-
-// Add monster states
-const newMonster = ref("")
-const newMonsterHP = ref(0)
-const newMonsterCR = ref("0")
-const newMonsterInCombat = ref(false)
 
 // Pagination states
 const totalResults = ref(0)
@@ -47,12 +42,16 @@ const searchMonsters = async (resetResults = true) => {
 
     // Bygg query string
     let queryParams = new URLSearchParams({
-      search: searchQuery.value,
+      //search: searchQuery.value,
       limit: resultsPerPage,
       offset: offset,
       ordering: sortOrder.value === 'desc' ? `-${sortBy.value}` : sortBy.value
     })
 
+    // Lägg till sökfråga
+    if (searchQuery.value) {
+      queryParams.append('name__icontains', searchQuery.value);
+    }
     // Lägg till filter
     if (selectedCR.value) {
       queryParams.append('challenge_rating__gte', selectedCR.value)
@@ -64,27 +63,32 @@ const searchMonsters = async (resetResults = true) => {
       queryParams.append('type', selectedType.value)
     }
     if (selectedDocument.value) {
-      queryParams.append('document__slug', selectedDocument.value)  // Viktigt: document__slug
+      queryParams.append('document__slug', selectedDocument.value)
     }
 
-    const response = await fetch(`https://api.open5e.com/v1/monsters/?${queryParams}`)
+    const response = await fetch(`https://api.open5e.com/monsters/?${queryParams}`)
     const data = await response.json()
 
     totalResults.value = data.count
     hasMoreResults.value = data.next !== null
 
+
     const newMonsters = data.results.map((monster, index) => ({
-      id: `api_${offset + index}`,
+      // API data (behåll originalet för CreatureModal!)
+      ...monster,
+
+      // Legacy fields för combat system compatibility
+      id: `api_${monster.slug || offset + index}`,
       label: monster.name,
-      challengeRating: parseFloat(monster.challenge_rating),
+      challengeRating: parseFloat(monster.challenge_rating || 0),
       hitPoints: monster.hit_points,
       originalHitPoints: monster.hit_points,
-      type: monster.type,
-      size: monster.size,
       armorClass: monster.armor_class,
-      document: monster.document__title || 'Unknown'
-    }))
+      document: monster.document__title || 'Unknown',
 
+      // Markera som API monster
+      source: 'open5e'
+    }))
     if (resetResults) {
       monsters.value = newMonsters
     } else {
@@ -118,7 +122,7 @@ const getSortClass = (field) => {
   return sortBy.value === field ? 'sorted' : ''
 }
 
-// Resten av dina befintliga funktioner...
+// Pagination och scroll
 const loadMoreResults = async () => {
   if (!hasMoreResults.value || isLoading.value) return
   currentPage.value++
@@ -137,31 +141,7 @@ const handleScroll = () => {
   }
 }
 
-const saveMonster = () => {
-  const monster = {
-    id: `custom_${Date.now()}`,
-    label: newMonster.value,
-    challengeRating: parseFloat(newMonsterCR.value),
-    hitPoints: newMonsterHP.value,
-    originalHitPoints: newMonsterHP.value,
-    type: 'custom',
-    size: 'Medium',
-    armorClass: 10
-  }
-
-  addToFavorites(monster)
-
-  if (newMonsterInCombat.value) {
-    store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0, done: false })
-    saveCombatMonsters()
-  }
-
-  newMonster.value = ""
-  newMonsterHP.value = 0
-  newMonsterCR.value = "0"
-  newMonsterInCombat.value = false
-}
-
+// Monster actions
 const addToCombatList = (monster, event) => {
   event.preventDefault()
   if (event.type === 'click') {
@@ -198,14 +178,7 @@ const addToFavoritesOnly = (monster, event) => {
   }
 }
 
-const doEdit = (e) => {
-  editing.value = e
-  newMonster.value = ""
-  newMonsterHP.value = 0
-  newMonsterCR.value = "0"
-  newMonsterInCombat.value = false
-}
-
+// Lifecycle hooks
 onMounted(() => {
   const scrollContainer = document.querySelector('.monsters-scroll-container')
   if (scrollContainer) {
@@ -225,8 +198,9 @@ onUnmounted(() => {
   <div class="monster-container container">
     <div class="header">
       <h1>{{ header }}</h1>
-      <button v-if="!editing" @click="doEdit(true)">Add Monster</button>
-      <button v-else @click="doEdit(false)">Cancel</button>
+      <button @click="showAddModal = true" class="btn btn-primary">
+        + Add Monster
+      </button>
     </div>
 
     <!-- MonsterSearch komponenten -->
@@ -241,19 +215,6 @@ onUnmounted(() => {
         :total-results="totalResults"
         @search="searchMonsters(true)"
     />
-
-    <!-- Add Monster Form -->
-    <form class="add-monsters-form" v-if="editing" @submit.prevent="saveMonster">
-      <input v-model.trim="newMonster" type="text" placeholder="Monster Name">
-      <input v-model.number="newMonsterHP" type="number" placeholder="Hit Points">
-      <input v-model.number="newMonsterCR" type="number" step="any" placeholder="Challenge Rating">
-      <label for="newMonster">
-        <input v-model="newMonsterInCombat" type="checkbox"> Add to Combat
-      </label>
-      <button :disabled="newMonster.length < 1 || newMonsterHP <= 0 || !newMonsterCR" class="btn btn-primary">
-        Save
-      </button>
-    </form>
 
     <!-- Klickbar Monster List Header med sortering -->
     <div class="monster-list-header">
@@ -305,10 +266,45 @@ onUnmounted(() => {
         <p>All results loaded</p>
       </div>
     </div>
+
+    <!-- Add Monster Modal -->
+    <AddMonsterModal
+        :is-open="showAddModal"
+        @close="showAddModal = false"
+    />
   </div>
 </template>
 
 <style scoped>
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: #4a90e2;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #357abd;
+}
+
 /* Monster list header med sortering */
 .monster-list-header {
   display: grid;
@@ -348,10 +344,20 @@ li {
   margin-bottom: 0.25rem;
   border-radius: 3px;
   transition: background-color 0.2s ease;
+  cursor: pointer;
 }
 
 li:hover {
   background-color: rgba(255, 255, 255, 0.02);
+}
+
+li.blink {
+  animation: blink 0.5s ease-in-out;
+}
+
+@keyframes blink {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(74, 144, 226, 0.3); }
 }
 
 .monster-name {
@@ -372,14 +378,6 @@ li:hover {
 
 .monster-fav {
   text-align: center;
-}
-
-/* Add monster form */
-.add-monsters-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
 }
 
 /* Scroll container */
@@ -439,6 +437,12 @@ li:hover {
 
 /* Responsiv design */
 @media (max-width: 767px) {
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
   .monster-list-header {
     grid-template-columns: 2fr 1fr 0.6fr 0.6fr 0.6fr 0.4fr;
     font-size: 0.9rem;

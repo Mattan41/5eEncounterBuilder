@@ -46,35 +46,35 @@ watch(localShowAdvanced, (value) => emits('update:showAdvancedSearch', value))
 const fetchDocuments = async () => {
   try {
     loadingDocuments.value = true
-    const response = await fetch('https://api.open5e.com/v1/documents/')
+    const response = await fetch('https://api.open5e.com/documents/')
     const data = await response.json()
 
+    // Skapa listan utan monsters_count eftersom det inte finns i API:et
     availableDocuments.value = [
       { value: '', label: 'All Sources' },
       ...data.results
-          .filter(doc => doc.monsters_count > 0) // Bara dokument med monster
           .map(doc => ({
             value: doc.slug,
-            label: `${doc.title} (${doc.monsters_count})`
+            label: doc.title
           }))
           .sort((a, b) => a.label.localeCompare(b.label))
     ]
   } catch (error) {
     console.error('Error fetching documents:', error)
-    // Fallback till vanliga källor
+    // Fallback med rätt slugs från API:et
     availableDocuments.value = [
       { value: '', label: 'All Sources' },
-      { value: 'srd', label: 'System Reference Document' },
-      { value: 'mm', label: 'Monster Manual' },
-      { value: 'vgtm', label: "Volo's Guide to Monsters" },
-      { value: 'mtf', label: 'Mordenkainen\'s Tome of Foes' },
-      { value: 'toa', label: 'Tomb of Annihilation' }
+      { value: 'wotc-srd', label: '5e Core Rules' },
+      { value: 'tob', label: 'Tome of Beasts' },
+      { value: 'cc', label: 'Creature Codex' },
+      { value: 'tob2', label: 'Tome of Beasts 2' },
+      { value: 'tob3', label: 'Tome of Beasts 3' },
+      { value: 'menagerie', label: 'Monstrous Menagerie' }
     ]
   } finally {
     loadingDocuments.value = false
   }
 }
-
 onMounted(() => {
   fetchDocuments()
 })
@@ -82,37 +82,57 @@ onMounted(() => {
 const crOptions = [
   { value: '', label: 'Any' },
   { value: '0', label: '0' },
-  { value: '0.125', label: '1/8' },
-  { value: '0.25', label: '1/4' },
-  { value: '0.5', label: '1/2' },
+  { value: '1/8', label: '1/8' },
+  { value: '1/4', label: '1/4' },
+  { value: '1/2', label: '1/2' },
   { value: '1', label: '1' },
   { value: '2', label: '2' },
   { value: '3', label: '3' },
   { value: '4', label: '4' },
   { value: '5', label: '5' },
+  { value: '6', label: '6' },
+  { value: '7', label: '7' },
+  { value: '8', label: '8' },
+  { value: '9', label: '9' },
   { value: '10', label: '10' },
+  { value: '11', label: '11' },
+  { value: '12', label: '12' },
+  { value: '13', label: '13' },
+  { value: '14', label: '14' },
   { value: '15', label: '15' },
+  { value: '16', label: '16' },
+  { value: '17', label: '17' },
+  { value: '18', label: '18' },
+  { value: '19', label: '19' },
   { value: '20', label: '20' },
+  { value: '21', label: '21' },
+  { value: '22', label: '22' },
+  { value: '23', label: '23' },
+  { value: '24', label: '24' },
   { value: '25', label: '25' },
+  { value: '26', label: '26' },
+  { value: '27', label: '27' },
+  { value: '28', label: '28' },
+  { value: '29', label: '29' },
   { value: '30', label: '30' }
 ]
 
 const typeOptions = [
   { value: '', label: 'All Types' },
-  { value: 'beast', label: 'Beast' },
-  { value: 'humanoid', label: 'Humanoid' },
-  { value: 'monstrosity', label: 'Monstrosity' },
-  { value: 'undead', label: 'Undead' },
-  { value: 'fiend', label: 'Fiend' },
-  { value: 'dragon', label: 'Dragon' },
-  { value: 'fey', label: 'Fey' },
-  { value: 'elemental', label: 'Elemental' },
-  { value: 'celestial', label: 'Celestial' },
-  { value: 'aberration', label: 'Aberration' },
-  { value: 'construct', label: 'Construct' },
-  { value: 'giant', label: 'Giant' },
-  { value: 'ooze', label: 'Ooze' },
-  { value: 'plant', label: 'Plant' }
+  { value: 'Aberration', label: 'Aberration' },
+  { value: 'Beast', label: 'Beast' },
+  { value: 'Celestial', label: 'Celestial' },
+  { value: 'Construct', label: 'Construct' },
+  { value: 'Dragon', label: 'Dragon' },
+  { value: 'Elemental', label: 'Elemental' },
+  { value: 'Fey', label: 'Fey' },
+  { value: 'Fiend', label: 'Fiend' },
+  { value: 'Giant', label: 'Giant' },
+  { value: 'Humanoid', label: 'Humanoid' },
+  { value: 'Monstrosity', label: 'Monstrosity' },
+  { value: 'Ooze', label: 'Ooze' },
+  { value: 'Plant', label: 'Plant' },
+  { value: 'Undead', label: 'Undead' }
 ]
 
 const handleSearch = () => {
