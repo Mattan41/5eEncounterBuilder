@@ -7,7 +7,7 @@ import TheCombatList from './components/TheCombatList.vue'
 
 const showMonsterList = ref(false)
 const showFavoriteList = ref(false)
-const showCombatEncounter = ref(true) // Combat visas som standard
+const showCombatEncounter = ref(true)
 
 const toggleMonsterList = () => {
   showMonsterList.value = !showMonsterList.value
@@ -21,7 +21,7 @@ const toggleCombatEncounter = () => {
   showCombatEncounter.value = !showCombatEncounter.value
 }
 
-// Flytta getMainClass till computed i Composition API
+
 const getMainClass = computed(() => {
   const visibleCount = [
     showCombatEncounter.value,
@@ -79,23 +79,22 @@ main {
     padding: 1rem;
   }
 
-  .single-column {
+  main.single-column {
     grid-template-columns: 1fr;
     justify-items: center;
   }
 
-  .two-columns {
+  main.two-columns {
     grid-template-columns: 1fr 1fr;
   }
 
-  .three-columns {
+  main.three-columns {
     grid-template-columns: 1fr 1fr 1fr;
   }
 }
 
-/* För mycket stora skärmar: begränsa kolumnbredd */
 @media (min-width: 1400px) {
-  .three-columns {
+  main.three-columns {
     grid-template-columns: repeat(3, minmax(400px, 500px));
     justify-content: center;
   }
