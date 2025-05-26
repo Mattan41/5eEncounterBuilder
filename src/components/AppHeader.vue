@@ -13,22 +13,24 @@ defineProps({
     required: true
   }
 })
-defineEmits(['toggleMonsterList', 'toggleFavoriteList', 'toggleCombatEncounter']);
+
+// Fixa emit-namnen till kebab-case
+defineEmits(['toggle-monster-list', 'toggle-favorite-list', 'toggle-combat-encounter'])
 </script>
 
 <template>
   <div class="app-header">
     <h1 class="app-title">5e Encounter Builder</h1>
     <div class="button-group">
-      <button @click="$emit('toggleMonsterList')">
+      <button @click="$emit('toggle-monster-list')">
         <span class="button-text">{{ showMonsterList ? 'Hide Monster List' : 'Show Monster List' }}</span>
         <span class="button-text-mobile">Monsters</span>
       </button>
-      <button @click="$emit('toggleFavoriteList')">
+      <button @click="$emit('toggle-favorite-list')">
         <span class="button-text">{{ showFavoriteList ? 'Hide Favorites' : 'Show Favorites' }}</span>
         <span class="button-text-mobile">Favorites</span>
       </button>
-      <button @click="$emit('toggleCombatEncounter')">
+      <button @click="$emit('toggle-combat-encounter')">
         <span class="button-text">{{ showCombatEncounter ? 'Hide Combat' : 'Show Combat' }}</span>
         <span class="button-text-mobile">Combat</span>
       </button>

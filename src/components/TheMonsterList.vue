@@ -1,20 +1,31 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { saveCombatMonsters, store, addToFavorites } from '../store.js'
+import MonsterSearch from "@/components/MonsterSearch.vue"
 
 const monsters = ref([])
 const header = ref('Monster List')
 const editing = ref(false)
+
+// Search & filter states
 const searchQuery = ref('')
+const showAdvancedSearch = ref(false)
+const selectedCR = ref('')
+const selectedCRMax = ref('')
+const selectedType = ref('')
+const selectedDocument = ref('')
+
+// Sorting states
+const sortBy = ref('name')
+const sortOrder = ref('asc')
+
+// Add monster states
 const newMonster = ref("")
 const newMonsterHP = ref(0)
 const newMonsterCR = ref("0")
 const newMonsterInCombat = ref(false)
 
-const showAdvancedSearch = ref(false)
-const selectedCR = ref('')
-const selectedType = ref('')
-
+// Pagination states
 const totalResults = ref(0)
 const currentPage = ref(1)
 const isLoading = ref(false)
@@ -34,9 +45,29 @@ const searchMonsters = async (resetResults = true) => {
 
     const offset = (currentPage.value - 1) * resultsPerPage
 
-    const response = await fetch(
-        `https://api.open5e.com/v1/monsters/?search=${encodeURIComponent(searchQuery.value)}&limit=${resultsPerPage}&offset=${offset}&ordering=challenge_rating`
-    )
+    // Bygg query string
+    let queryParams = new URLSearchParams({
+      search: searchQuery.value,
+      limit: resultsPerPage,
+      offset: offset,
+      ordering: sortOrder.value === 'desc' ? `-${sortBy.value}` : sortBy.value
+    })
+
+    // Lägg till filter
+    if (selectedCR.value) {
+      queryParams.append('challenge_rating__gte', selectedCR.value)
+    }
+    if (selectedCRMax.value) {
+      queryParams.append('challenge_rating__lte', selectedCRMax.value)
+    }
+    if (selectedType.value) {
+      queryParams.append('type', selectedType.value)
+    }
+    if (selectedDocument.value) {
+      queryParams.append('document__slug', selectedDocument.value)  // Viktigt: document__slug
+    }
+
+    const response = await fetch(`https://api.open5e.com/v1/monsters/?${queryParams}`)
     const data = await response.json()
 
     totalResults.value = data.count
@@ -50,6 +81,8 @@ const searchMonsters = async (resetResults = true) => {
       originalHitPoints: monster.hit_points,
       type: monster.type,
       size: monster.size,
+      armorClass: monster.armor_class,
+      document: monster.document__title || 'Unknown'
     }))
 
     if (resetResults) {
@@ -65,9 +98,29 @@ const searchMonsters = async (resetResults = true) => {
   }
 }
 
+// Sortering
+const sortMonsters = (field) => {
+  if (sortBy.value === field) {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortBy.value = field
+    sortOrder.value = 'asc'
+  }
+  searchMonsters(true)
+}
+
+const getSortIcon = (field) => {
+  if (sortBy.value !== field) return '↕️'
+  return sortOrder.value === 'asc' ? '↑' : '↓'
+}
+
+const getSortClass = (field) => {
+  return sortBy.value === field ? 'sorted' : ''
+}
+
+// Resten av dina befintliga funktioner...
 const loadMoreResults = async () => {
   if (!hasMoreResults.value || isLoading.value) return
-
   currentPage.value++
   await searchMonsters(false)
 }
@@ -77,7 +130,7 @@ const handleScroll = () => {
   if (!scrollContainer) return
 
   const { scrollTop, scrollHeight, clientHeight } = scrollContainer
-  const threshold = 100 // Börja ladda när 100px från botten
+  const threshold = 100
 
   if (scrollHeight - scrollTop - clientHeight < threshold && hasMoreResults.value && !isLoading.value) {
     loadMoreResults()
@@ -92,7 +145,8 @@ const saveMonster = () => {
     hitPoints: newMonsterHP.value,
     originalHitPoints: newMonsterHP.value,
     type: 'custom',
-    size: 'Medium'
+    size: 'Medium',
+    armorClass: 10
   }
 
   addToFavorites(monster)
@@ -103,16 +157,14 @@ const saveMonster = () => {
   }
 
   newMonster.value = ""
-  newMonsterHP.value = null
-  newMonsterCR.value = ""
+  newMonsterHP.value = 0
+  newMonsterCR.value = "0"
   newMonsterInCombat.value = false
 }
 
-// add to combat and favorites
 const addToCombatList = (monster, event) => {
   event.preventDefault()
   if (event.type === 'click') {
-
     const addedToFavorites = addToFavorites(monster)
 
     store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0, done: false })
@@ -124,14 +176,12 @@ const addToCombatList = (monster, event) => {
       listItem.classList.remove('blink')
     }, 1000)
 
-    // show feedback for adding to combat and favorites
     if (addedToFavorites) {
-      // todo possibly add a toast-notifikation
       console.log(`${monster.label} added to favorites and combat!`)
     }
   }
 }
-// add to favorites only
+
 const addToFavoritesOnly = (monster, event) => {
   event.preventDefault()
   event.stopPropagation()
@@ -151,12 +201,11 @@ const addToFavoritesOnly = (monster, event) => {
 const doEdit = (e) => {
   editing.value = e
   newMonster.value = ""
-  newMonsterHP.value = null
-  newMonsterCR.value = ""
+  newMonsterHP.value = 0
+  newMonsterCR.value = "0"
   newMonsterInCombat.value = false
 }
 
-// Event listeners för scroll
 onMounted(() => {
   const scrollContainer = document.querySelector('.monsters-scroll-container')
   if (scrollContainer) {
@@ -180,47 +229,20 @@ onUnmounted(() => {
       <button v-else @click="doEdit(false)">Cancel</button>
     </div>
 
-    <form class="search-form" @submit.prevent="searchMonsters">
-      <input v-model="searchQuery" type="text" placeholder="Search for monsters">
-      <button :disabled="!searchQuery" class="btn btn-primary">
-        {{ isLoading ? 'Searching...' : 'Search' }}
-      </button>
-    </form>
+    <!-- MonsterSearch komponenten -->
+    <MonsterSearch
+        v-model:search-query="searchQuery"
+        v-model:selected-c-r="selectedCR"
+        v-model:selected-c-r-max="selectedCRMax"
+        v-model:selected-type="selectedType"
+        v-model:selected-document="selectedDocument"
+        v-model:show-advanced-search="showAdvancedSearch"
+        :is-loading="isLoading"
+        :total-results="totalResults"
+        @search="searchMonsters(true)"
+    />
 
-    <!-- Lägg till filter om du vill -->
-    <div class="filter-section" v-if="searchQuery">
-      <label>
-        <input type="checkbox" v-model="showAdvancedSearch"> Show filters
-      </label>
-
-      <div v-if="showAdvancedSearch" class="advanced-filters">
-        <select v-model="selectedCR" @change="searchMonsters">
-          <option value="">Any CR</option>
-          <option value="0">CR 0</option>
-          <option value="1">CR 1</option>
-          <option value="2">CR 2</option>
-          <option value="3">CR 3</option>
-          <!-- etc -->
-        </select>
-
-        <select v-model="selectedType" @change="searchMonsters">
-          <option value="">Any Type</option>
-          <option value="dragon">Dragon</option>
-          <option value="humanoid">Humanoid</option>
-          <option value="beast">Beast</option>
-          <!-- etc -->
-        </select>
-      </div>
-    </div>
-
-    <!-- Visa antal träffar -->
-    <div v-if="totalResults > 0" class="search-results-info">
-      <p>{{ totalResults }} monster{{ totalResults !== 1 ? 's' : '' }} found</p>
-      <p v-if="monsters.length < totalResults">
-        Showing {{ monsters.length }} of {{ totalResults }} results
-      </p>
-    </div>
-
+    <!-- Add Monster Form -->
     <form class="add-monsters-form" v-if="editing" @submit.prevent="saveMonster">
       <input v-model.trim="newMonster" type="text" placeholder="Monster Name">
       <input v-model.number="newMonsterHP" type="number" placeholder="Hit Points">
@@ -233,20 +255,36 @@ onUnmounted(() => {
       </button>
     </form>
 
-    <h3 class="monster-list-header">
-      <span>Name</span>
-      <span>CR</span>
-      <span>HP</span>
+    <!-- Klickbar Monster List Header med sortering -->
+    <div class="monster-list-header">
+      <span @click="sortMonsters('name')" :class="getSortClass('name')" class="sortable">
+        Name {{ getSortIcon('name') }}
+      </span>
+      <span @click="sortMonsters('type')" :class="getSortClass('type')" class="sortable">
+        Type {{ getSortIcon('type') }}
+      </span>
+      <span @click="sortMonsters('challenge_rating')" :class="getSortClass('challenge_rating')" class="sortable">
+        CR {{ getSortIcon('challenge_rating') }}
+      </span>
+      <span @click="sortMonsters('hit_points')" :class="getSortClass('hit_points')" class="sortable">
+        HP {{ getSortIcon('hit_points') }}
+      </span>
+      <span @click="sortMonsters('armor_class')" :class="getSortClass('armor_class')" class="sortable">
+        AC {{ getSortIcon('armor_class') }}
+      </span>
       <span>Fav</span>
-    </h3>
+    </div>
 
+    <!-- Monster List -->
     <div class="monsters-scroll-container">
       <ul>
         <li v-for="monster in monsters" @click="addToCombatList(monster, $event)" :key="monster.id">
-          <span>{{ monster.label }}</span>
-          <span>{{ monster.challengeRating }}</span>
-          <span>{{ monster.hitPoints }}</span>
-          <span>
+          <span class="monster-name">{{ monster.label }}</span>
+          <span class="monster-type">{{ monster.type }}</span>
+          <span class="monster-cr">{{ monster.challengeRating }}</span>
+          <span class="monster-hp">{{ monster.hitPoints }}</span>
+          <span class="monster-ac">{{ monster.armorClass || '-' }}</span>
+          <span class="monster-fav">
             <button
                 @click="addToFavoritesOnly(monster, $event)"
                 class="favorite-btn"
@@ -256,6 +294,7 @@ onUnmounted(() => {
           </span>
         </li>
       </ul>
+
       <!-- Loading indikator -->
       <div v-if="isLoading" class="loading-indicator">
         <p>Loading more monsters...</p>
@@ -270,65 +309,68 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Monster list specifik layout */
+/* Monster list header med sortering */
 .monster-list-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2fr 1fr 0.7fr 0.7fr 0.7fr 0.5fr;
+  gap: 0.5rem;
   font-weight: bold;
   margin-bottom: 10px;
+  padding: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 5px;
 }
 
-.monster-list-header span:first-child {
-  flex-grow: 2;
-  text-align: left;
+.monster-list-header span {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  padding: 0.25rem;
+  border-radius: 3px;
 }
 
-.monster-list-header span:nth-child(2) {
-  flex-grow: 1;
-  margin-left: auto;
-  padding-left: 1rem;
-  text-align: center;
+.monster-list-header span.sortable:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
-.monster-list-header span:nth-child(3) {
-  text-align: right;
-  margin-right: 1rem;
-}
-
-.monster-list-header span:last-child {
-  flex-grow: 0;
-  width: 3rem;
-  text-align: center;
+.monster-list-header span.sorted {
+  background-color: rgba(74, 144, 226, 0.3);
+  color: #fff;
 }
 
 /* Monster list items */
 li {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2fr 1fr 0.7fr 0.7fr 0.7fr 0.5fr;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
 }
 
-li span:first-child {
+li:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.monster-name {
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex-grow: 2;
+  font-weight: 500;
 }
 
-li span:nth-child(2) {
-  flex-grow: 1;
-  margin-left: 1rem;
+.monster-type,
+.monster-cr,
+.monster-hp,
+.monster-ac {
   text-align: center;
+  color: #ccc;
 }
 
-li span:nth-child(3) {
-  text-align: right;
-  margin-right: 1rem;
-}
-
-li span:last-child {
-  flex-grow: 0;
-  width: 3rem;
+.monster-fav {
   text-align: center;
 }
 
@@ -337,38 +379,15 @@ li span:last-child {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-/* Search form */
-.search-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
-/* Search results info */
-.search-results-info {
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  border-left: 4px solid #ccc;
-}
-
-.search-results-info p {
-  margin: 0.25rem 0;
-  color: #ccc;
-  font-size: 0.9rem;
-}
-
-/* Scroll container för infinite scroll */
+/* Scroll container */
 .monsters-scroll-container {
   max-height: 60vh;
   overflow-y: auto;
 }
 
-/* Scrollbar styling */
 .monsters-scroll-container::-webkit-scrollbar {
   width: 8px;
 }
@@ -418,10 +437,32 @@ li span:last-child {
   background-color: rgba(255, 145, 0, 0.1);
 }
 
-/* Responsiv design för search form */
-@media (min-width: 768px) {
-  .search-form {
-    flex-direction: row;
+/* Responsiv design */
+@media (max-width: 767px) {
+  .monster-list-header {
+    grid-template-columns: 2fr 1fr 0.6fr 0.6fr 0.6fr 0.4fr;
+    font-size: 0.9rem;
+  }
+
+  li {
+    grid-template-columns: 2fr 1fr 0.6fr 0.6fr 0.6fr 0.4fr;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .monster-list-header {
+    grid-template-columns: 2fr 1fr 0.5fr 0.5fr 0.4fr;
+  }
+
+  li {
+    grid-template-columns: 2fr 1fr 0.5fr 0.5fr 0.4fr;
+  }
+
+  /* Dölj AC på små skärmar */
+  .monster-list-header span:nth-child(5),
+  li .monster-ac {
+    display: none;
   }
 }
 </style>

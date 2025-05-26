@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import {computed, ref} from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import TheMonsterList from './components/TheMonsterList.vue'
 import TheFavoriteList from './components/TheFavoriteList.vue'
@@ -20,6 +20,21 @@ const toggleFavoriteList = () => {
 const toggleCombatEncounter = () => {
   showCombatEncounter.value = !showCombatEncounter.value
 }
+
+// Flytta getMainClass till computed i Composition API
+const getMainClass = computed(() => {
+  const visibleCount = [
+    showCombatEncounter.value,
+    showMonsterList.value,
+    showFavoriteList.value
+  ].filter(Boolean).length
+
+  return {
+    'single-column': visibleCount === 1,
+    'two-columns': visibleCount === 2,
+    'three-columns': visibleCount === 3
+  }
+})
 </script>
 
 <template>
@@ -35,30 +50,13 @@ const toggleCombatEncounter = () => {
       />
     </header>
 
-    <main :class="getMainClass()">
-      <TheCombatList v-if="showCombatEncounter" />
-      <TheMonsterList v-if="showMonsterList" />
-      <TheFavoriteList v-if="showFavoriteList" />
+    <main :class="getMainClass">
+      <TheCombatList v-if="showCombatEncounter"/>
+      <TheMonsterList v-if="showMonsterList"/>
+      <TheFavoriteList v-if="showFavoriteList"/>
     </main>
   </div>
 </template>
-
-<script>
-export default {
-  methods: {
-    getMainClass() {
-      const visibleCount = [this.showCombatEncounter, this.showMonsterList, this.showFavoriteList]
-          .filter(Boolean).length
-
-      return {
-        'single-column': visibleCount === 1,
-        'two-columns': visibleCount === 2,
-        'three-columns': visibleCount === 3
-      }
-    }
-  }
-}
-</script>
 
 <style scoped>
 .app {
