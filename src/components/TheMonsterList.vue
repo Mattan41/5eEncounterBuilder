@@ -67,7 +67,7 @@ const searchMonsters = async (resetResults = true) => {
       queryParams.append('document__slug', selectedDocument.value)  // Viktigt: document__slug
     }
 
-    const response = await fetch(`https://api.open5e.com/v1/monsters/?${queryParams}`)
+    const response = await fetch(`https://api.open5e.com/monsters/?${queryParams}`)
     const data = await response.json()
 
     totalResults.value = data.count
