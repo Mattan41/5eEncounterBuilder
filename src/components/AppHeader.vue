@@ -1,21 +1,30 @@
 <script setup>
-
 defineProps({
   showMonsterList: {
     type: Boolean,
     required: true
+  },
+  showFavoriteList: {
+    type: Boolean,
+    required: true
   }
 })
-defineEmits(['toggleMonsterList']);
+defineEmits(['toggleMonsterList', 'toggleFavoriteList']);
 </script>
 
 <template>
   <div class="app-header">
     <h1 class="app-title">5e Encounter Builder</h1>
-    <button @click="$emit('toggleMonsterList')">
-      <span class="button-text">{{ showMonsterList ? 'Hide Monster List' : 'Show Monster List' }}</span>
-      <span class="button-text-mobile">Monster List</span>
-    </button>
+    <div class="button-group">
+      <button @click="$emit('toggleMonsterList')">
+        <span class="button-text">{{ showMonsterList ? 'Hide Monster List' : 'Show Monster List' }}</span>
+        <span class="button-text-mobile">Monsters</span>
+      </button>
+      <button @click="$emit('toggleFavoriteList')">
+        <span class="button-text">{{ showFavoriteList ? 'Hide Favorites' : 'Show Favorites' }}</span>
+        <span class="button-text-mobile">Favorites</span>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -37,6 +46,11 @@ defineEmits(['toggleMonsterList']);
   font-weight: bold;
   color: #ff9100;
   margin: 0;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.5rem;
 }
 
 button {

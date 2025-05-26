@@ -1,43 +1,50 @@
+<!-- I din App.vue eller huvudkomponent -->
 <script setup>
-import TheMonsterList from './components/TheMonsterList.vue'
-import TheCombatList from './components/TheCombatList.vue'
+import { ref } from 'vue'
 import AppHeader from './components/AppHeader.vue'
-import {ref} from "vue";
+import TheMonsterList from './components/TheMonsterList.vue'
+import TheFavoriteList from './components/TheFavoriteList.vue'
+import TheCombatList from './components/TheCombatList.vue'
 
 const showMonsterList = ref(false)
+const showFavoriteList = ref(false)
 
 const toggleMonsterList = () => {
   showMonsterList.value = !showMonsterList.value
 }
 
+const toggleFavoriteList = () => {
+  showFavoriteList.value = !showFavoriteList.value
+}
 </script>
 
 <template>
-  <header>
-    <AppHeader :showMonsterList="showMonsterList" @toggleMonsterList="toggleMonsterList"/>
-  </header>
-  <main :class="{ 'single-column': !showMonsterList }">
-    <TheMonsterList v-show="showMonsterList"/>
-    <TheCombatList/>
-  </main>
+  <div class="app">
+    <AppHeader
+        :show-monster-list="showMonsterList"
+        :show-favorite-list="showFavoriteList"
+        @toggle-monster-list="toggleMonsterList"
+        @toggle-favorite-list="toggleFavoriteList"
+    />
+
+    <div class="content-grid">
+      <TheCombatList />
+      <TheMonsterList v-if="showMonsterList" />
+      <TheFavoriteList v-if="showFavoriteList" />
+    </div>
+  </div>
 </template>
 
 <style scoped>
-
-main {
-  display: flex;
-  flex-flow: column;
+.content-grid {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
 }
 
-@media (min-width: 1024px) {
-  main {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  .single-column {
-    grid-template-columns: 1fr;
+@media (min-width: 768px) {
+  .content-grid {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   }
 }
 </style>

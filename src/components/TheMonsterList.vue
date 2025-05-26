@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { saveCombatMonsters, store } from '../store.js'
+import { saveCombatMonsters, store, addToFavorites } from '../store.js'
 
 const monsters = ref([])
 const header = ref('Monster List')
@@ -23,47 +23,6 @@ const isLoading = ref(false)
 const hasMoreResults = ref(false)
 const resultsPerPage = 10
 
-// Funktion för att söka efter monster
-// const searchMonsters = async (resetResults = true) => {
-//   if (isLoading.value) return
-//
-//   try {
-//     isLoading.value = true
-//
-//     if (resetResults) {
-//       monsters.value = []
-//       currentPage.value = 1
-//     }
-//
-//     const offset = (currentPage.value - 1) * resultsPerPage
-//     const response = await fetch(`https://api.open5e.com/v1/monsters/?search=${searchQuery.value}&limit=${resultsPerPage}&offset=${offset}`)
-//     const data = await response.json()
-//
-//     totalResults.value = data.count
-//     hasMoreResults.value = data.next !== null
-//
-//     const newMonsters = data.results.map((monster, index) => ({
-//       id: `api_${offset + index}`,
-//       label: monster.name,
-//       challengeRating: parseFloat(monster.challenge_rating),
-//       hitPoints: monster.hit_points,
-//       originalHitPoints: monster.hit_points,
-//     }))
-//
-//     if (resetResults) {
-//       monsters.value = newMonsters
-//     } else {
-//       monsters.value.push(...newMonsters)
-//     }
-//
-//   } catch (error) {
-//     console.log('Error fetching monsters', error)
-//   } finally {
-//     isLoading.value = false
-//   }
-// }
-
-// Uppdaterad searchMonsters funktion
 const searchMonsters = async (resetResults = true) => {
   if (isLoading.value) return
 
@@ -77,7 +36,6 @@ const searchMonsters = async (resetResults = true) => {
 
     const offset = (currentPage.value - 1) * resultsPerPage
 
-    // Använd search-parametern för partiell matchning istället för search=
     const response = await fetch(
         `https://api.open5e.com/v1/monsters/?search=${encodeURIComponent(searchQuery.value)}&limit=${resultsPerPage}&offset=${offset}&ordering=challenge_rating`
     )
@@ -92,8 +50,8 @@ const searchMonsters = async (resetResults = true) => {
       challengeRating: parseFloat(monster.challenge_rating),
       hitPoints: monster.hit_points,
       originalHitPoints: monster.hit_points,
-      type: monster.type, // Lägg till monster-typ
-      size: monster.size, // Lägg till storlek
+      type: monster.type,
+      size: monster.size,
     }))
 
     if (resetResults) {
@@ -110,7 +68,6 @@ const searchMonsters = async (resetResults = true) => {
 }
 
 
-// Funktion för att ladda fler resultat
 const loadMoreResults = async () => {
   if (!hasMoreResults.value || isLoading.value) return
 
@@ -118,7 +75,6 @@ const loadMoreResults = async () => {
   await searchMonsters(false)
 }
 
-// Scroll event listener för infinite scrolling
 const handleScroll = () => {
   const scrollContainer = document.querySelector('.monsters-scroll-container')
   if (!scrollContainer) return
@@ -131,7 +87,25 @@ const handleScroll = () => {
   }
 }
 
-// Funktion för att spara nya monster
+// const saveMonster = () => {
+//   const monster = {
+//     id: `custom_${Date.now()}`,
+//     label: newMonster.value,
+//     challengeRating: parseFloat(newMonsterCR.value),
+//     hitPoints: newMonsterHP.value,
+//     originalHitPoints: newMonsterHP.value,
+//   }
+//   monsters.value.unshift(monster) // Lägg till i början av listan
+//   if (newMonsterInCombat.value) {
+//     store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0, done: false })
+//     saveCombatMonsters()
+//   }
+//   newMonster.value = ""
+//   newMonsterHP.value = null
+//   newMonsterCR.value = ""
+//   newMonsterInCombat.value = false
+// }
+
 const saveMonster = () => {
   const monster = {
     id: `custom_${Date.now()}`,
@@ -139,31 +113,77 @@ const saveMonster = () => {
     challengeRating: parseFloat(newMonsterCR.value),
     hitPoints: newMonsterHP.value,
     originalHitPoints: newMonsterHP.value,
+    type: 'custom',
+    size: 'Medium'
   }
-  monsters.value.unshift(monster) // Lägg till i början av listan
+
+  addToFavorites(monster)
+
   if (newMonsterInCombat.value) {
     store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0, done: false })
     saveCombatMonsters()
   }
+
   newMonster.value = ""
   newMonsterHP.value = null
   newMonsterCR.value = ""
   newMonsterInCombat.value = false
 }
 
-// Lägg till monster i combat-listan
+// add to combat and favorites
 const addToCombatList = (monster, event) => {
   event.preventDefault()
   if (event.type === 'click') {
+
+    const addedToFavorites = addToFavorites(monster)
+
     store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0, done: false })
     saveCombatMonsters()
+
     const listItem = event.currentTarget
     listItem.classList.add('blink')
     setTimeout(() => {
       listItem.classList.remove('blink')
     }, 1000)
+
+    // show feedback for adding to combat and favorites
+    if (addedToFavorites) {
+      // todo possibly add a toast-notifikation
+      console.log(`${monster.label} added to favorites and combat!`)
+    }
   }
 }
+// add to favorites only
+const addToFavoritesOnly = (monster, event) => {
+  event.preventDefault()
+  event.stopPropagation()
+
+  const added = addToFavorites(monster)
+  if (added) {
+    // Lägg till visuell feedback
+    const button = event.currentTarget
+    button.textContent = '★'
+    button.style.color = '#ff9100'
+    setTimeout(() => {
+      button.textContent = '☆'
+      button.style.color = ''
+    }, 1000)
+  }
+}
+
+// Lägg till monster i combat-listan
+// const addToCombatList = (monster, event) => {
+//   event.preventDefault()
+//   if (event.type === 'click') {
+//     store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0, done: false })
+//     saveCombatMonsters()
+//     const listItem = event.currentTarget
+//     listItem.classList.add('blink')
+//     setTimeout(() => {
+//       listItem.classList.remove('blink')
+//     }, 1000)
+//   }
+// }
 
 const doEdit = (e) => {
   editing.value = e
@@ -250,22 +270,44 @@ onUnmounted(() => {
       </button>
     </form>
 
+<!--    <h3 class="monster-list-header">-->
+<!--      <span>Name</span>-->
+<!--      <span>CR</span>-->
+<!--      <span>HP</span>-->
+<!--    </h3>-->
+
+<!--    &lt;!&ndash; Scrollbar container för infinite scroll &ndash;&gt;-->
+<!--    <div class="monsters-scroll-container">-->
+<!--      <ul>-->
+<!--        <li v-for="monster in monsters" @click="addToCombatList(monster, $event)" :key="monster.id">-->
+<!--          <span>{{ monster.label }}</span>-->
+<!--          <span>{{ monster.challengeRating }}</span>-->
+<!--          <span>{{ monster.hitPoints }}</span>-->
+<!--        </li>-->
+<!--      </ul>-->
     <h3 class="monster-list-header">
       <span>Name</span>
       <span>CR</span>
       <span>HP</span>
+      <span>Fav</span>
     </h3>
 
-    <!-- Scrollbar container för infinite scroll -->
     <div class="monsters-scroll-container">
       <ul>
         <li v-for="monster in monsters" @click="addToCombatList(monster, $event)" :key="monster.id">
           <span>{{ monster.label }}</span>
           <span>{{ monster.challengeRating }}</span>
           <span>{{ monster.hitPoints }}</span>
+          <span>
+            <button
+                @click="addToFavoritesOnly(monster, $event)"
+                class="favorite-btn"
+                title="Add to favorites">
+              ☆
+            </button>
+          </span>
         </li>
       </ul>
-
       <!-- Loading indikator -->
       <div v-if="isLoading" class="loading-indicator">
         <p>Loading more monsters...</p>
@@ -302,11 +344,29 @@ ul {
   padding: 0;
 }
 
-.monster-list-header {
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
-  margin-bottom: 10px;
+.favorite-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #ccc;
+  padding: 0.2rem;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.favorite-btn:hover {
+  color: #ff9100;
+  background-color: rgba(255, 145, 0, 0.1);
+}
+
+
+
+.monster-list-header span:last-child,
+li span:last-child {
+  flex-grow: 0;
+  width: 3rem;
+  text-align: center;
 }
 
 /* Monster name*/
@@ -324,9 +384,10 @@ ul {
 }
 
 /*HP*/
-.monster-list-header span:last-child {
-  flex-grow: 1;
+.monster-list-header span:nth-child(3),
+li span:nth-child(3) {
   text-align: right;
+  margin-right: 1rem;
 }
 
 li {
