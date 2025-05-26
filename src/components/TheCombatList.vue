@@ -146,6 +146,7 @@ const handleTouchEnd = (monster, event) => {
         <button @click="resetCombat">Reset combat</button>
       </div>
     </div>
+
     <ol>
       <transition-group name="swipe" tag="ol">
         <li v-for="(monster, index) in store.combatMonsters" :key="monster.combatId"
@@ -153,8 +154,11 @@ const handleTouchEnd = (monster, event) => {
             @contextmenu="removeFromCombatList(monster, $event)"
             @touchstart="handleTouchStart"
             @touchend="handleTouchEnd(monster, $event)"
-            class="static-class"
-            :class="{ 'swipe-right': monster.swipedRight, 'current-monster': isCombatActive && index === currentMonsterIndex }">
+            :class="{
+              'swipe-right': monster.swipedRight,
+              'current-monster': isCombatActive && index === currentMonsterIndex
+            }">
+
           <div class="monster-info">
             <div class="monster-header" :class="{strikeout: monster.done }">
               <div class="initiative-group">
@@ -167,6 +171,7 @@ const handleTouchEnd = (monster, event) => {
               <span class="monster-label">{{ monster.label }}</span>
               <span class="monster-hp">(HP: {{ monster.hitPoints }})</span>
             </div>
+
             <div class="damage-container">
               <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop
                      @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
@@ -178,11 +183,12 @@ const handleTouchEnd = (monster, event) => {
         </li>
       </transition-group>
     </ol>
+
     <div v-if="isRoundBlinking" class="overlay"></div>
   </div>
 </template>
 <style scoped>
-/* Animations */
+/* Animations från den gamla */
 .round-blink-enter-active, .round-blink-leave-active {
   transition: opacity 0.5s;
 }
@@ -191,12 +197,7 @@ const handleTouchEnd = (monster, event) => {
   opacity: 0;
 }
 
-.header.pulsate {
-  animation: pulsate 3s infinite;
-  will-change: border-color;
-}
-
-/* General Styles */
+/* Header layout - den gamla strukturen */
 .header {
   display: grid;
   align-items: center;
@@ -209,51 +210,28 @@ const handleTouchEnd = (monster, event) => {
   display: flex;
   justify-content: space-between;
   width: 100%;
-
 }
 
 .buttons {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .sub-buttons {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
-
 
 h2 {
   position: relative;
   top: -10px;
   color: #FFD700;
-
-}
-
-ol {
-  list-style: none;
-  padding: 0;
   margin: 0;
 }
 
-
-li {
-  color: #FFD700;
-}
-
-.strikeout {
-  text-decoration: line-through;
-  color: #555555;
-}
-
-.swipe-right {
-  animation: swipeRight 0.5s forwards;
-}
-
-.current-monster {
-  background-color: rgba(255, 255, 0, 0.2);
-}
-
+/* Monster layout - behåll den gamla mobilstrukturen */
 .monster-info {
   display: flex;
   flex-direction: column;
@@ -264,6 +242,7 @@ li {
   display: flex;
   justify-content: flex-start;
   gap: 1rem;
+  align-items: center;
 }
 
 .monster-label {
@@ -271,6 +250,7 @@ li {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
 }
 
 .monster-hp {
@@ -278,40 +258,25 @@ li {
   white-space: nowrap;
 }
 
-.damage-container {
+/* Initiative styling - den gamla layouten */
+.initiative-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.damage-input {
-  background-color: #444; /* Dark background */
-  color: white;
-  border: 1px solid #555;
-  padding: 0.4rem;
-  border-radius: 5px;
-}
-
-.apply-button {
-  padding: 0.4rem;
-  margin-left: 10px;
-}
-
-.initiative-group {
-  font-size: 0.8rem; /* Smaller font size */
+  font-size: 0.8rem;
 }
 
 .initiative-input {
   width: 2rem;
   text-align: center;
   margin-right: 0.5rem;
-  background-color: #444; /* Dark background */
+  background-color: #444;
   color: white;
   border: 1px solid #555;
   padding: 0.2rem;
   border-radius: 5px;
 }
 
+/* D20 och tooltip från den gamla */
 .roll-initiative {
   font-size: 0.8rem;
   position: relative;
@@ -336,12 +301,12 @@ li {
   padding: 1px 0;
   position: absolute;
   z-index: 1;
-  left: 125%; /* Position to the right of the image */
+  left: 125%;
   top: 30%;
   transform: translateY(-50%);
   opacity: 0;
   transition: opacity 0.7s ease-in-out;
-  font-size: 0.8rem; /* Smaller text */
+  font-size: 0.8rem;
 }
 
 .roll-initiative:hover .roll-text {
@@ -349,65 +314,83 @@ li {
   opacity: 1;
 }
 
-/* Media Queries */
-@media (min-width: 768px) {
+/* Damage container */
+.damage-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
+.damage-input {
+  background-color: #444;
+  color: white;
+  border: 1px solid #555;
+  padding: 0.4rem;
+  border-radius: 5px;
+  flex: 1;
+}
+
+.apply-button {
+  padding: 0.4rem;
+  white-space: nowrap;
+}
+
+/* Combat states */
+.strikeout {
+  text-decoration: line-through;
+  color: #555555;
+}
+
+.current-monster {
+  background-color: rgba(255, 255, 0, 0.2);
+  border-left: 4px solid #FFD700;
+}
+
+/* Swipe animation */
+.swipe-right {
+  animation: swipeRight 0.5s forwards;
+}
+
+@keyframes swipeRight {
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Responsive design - den gamla approachen */
+@media (min-width: 768px) {
   .initiative-group {
-    font-size: 1rem; /* Default font size */
+    font-size: 1rem;
   }
 
   .initiative-input {
-    width: 3rem; /* Default width */
-    padding: 0.4rem; /* Default padding */
+    width: 3rem;
+    padding: 0.4rem;
   }
 
   .roll-initiative {
-    font-size: 1rem; /* Default font size */
+    font-size: 1rem;
   }
 
   .d20-image {
-    width: 28px; /* Default image size */
-  }
-
-  .combat-container {
-    padding: 1.5rem;
-  }
-
-  li {
-    padding: 1rem;
+    width: 28px;
   }
 }
 
 @media (min-width: 1024px) {
-  .combat-container {
-    padding: 2rem;
-  }
-
   .monster-info {
-    display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    gap: 0.5rem;
   }
 
   .monster-header {
-    display: flex;
     gap: 1rem;
-  }
-
-  .damage-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  li {
-    padding: 1rem;
   }
 }
 
-/* Overlay styles */
+/* Overlay */
 .overlay {
   position: fixed;
   top: 0;
