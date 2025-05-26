@@ -11,6 +11,11 @@ const newMonsterHP = ref(0)
 const newMonsterCR = ref("0")
 const newMonsterInCombat = ref(false)
 
+const showAdvancedSearch = ref(false)
+const selectedCR = ref('')
+const selectedType = ref('')
+
+
 // Nya variabler för infinite scroll
 const totalResults = ref(0)
 const currentPage = ref(1)
@@ -19,6 +24,46 @@ const hasMoreResults = ref(false)
 const resultsPerPage = 10
 
 // Funktion för att söka efter monster
+// const searchMonsters = async (resetResults = true) => {
+//   if (isLoading.value) return
+//
+//   try {
+//     isLoading.value = true
+//
+//     if (resetResults) {
+//       monsters.value = []
+//       currentPage.value = 1
+//     }
+//
+//     const offset = (currentPage.value - 1) * resultsPerPage
+//     const response = await fetch(`https://api.open5e.com/v1/monsters/?search=${searchQuery.value}&limit=${resultsPerPage}&offset=${offset}`)
+//     const data = await response.json()
+//
+//     totalResults.value = data.count
+//     hasMoreResults.value = data.next !== null
+//
+//     const newMonsters = data.results.map((monster, index) => ({
+//       id: `api_${offset + index}`,
+//       label: monster.name,
+//       challengeRating: parseFloat(monster.challenge_rating),
+//       hitPoints: monster.hit_points,
+//       originalHitPoints: monster.hit_points,
+//     }))
+//
+//     if (resetResults) {
+//       monsters.value = newMonsters
+//     } else {
+//       monsters.value.push(...newMonsters)
+//     }
+//
+//   } catch (error) {
+//     console.log('Error fetching monsters', error)
+//   } finally {
+//     isLoading.value = false
+//   }
+// }
+
+// Uppdaterad searchMonsters funktion
 const searchMonsters = async (resetResults = true) => {
   if (isLoading.value) return
 
@@ -31,7 +76,11 @@ const searchMonsters = async (resetResults = true) => {
     }
 
     const offset = (currentPage.value - 1) * resultsPerPage
-    const response = await fetch(`https://api.open5e.com/v1/monsters/?search=${searchQuery.value}&limit=${resultsPerPage}&offset=${offset}`)
+
+    // Använd search-parametern för partiell matchning istället för search=
+    const response = await fetch(
+        `https://api.open5e.com/v1/monsters/?search=${encodeURIComponent(searchQuery.value)}&limit=${resultsPerPage}&offset=${offset}&ordering=challenge_rating`
+    )
     const data = await response.json()
 
     totalResults.value = data.count
@@ -43,6 +92,8 @@ const searchMonsters = async (resetResults = true) => {
       challengeRating: parseFloat(monster.challenge_rating),
       hitPoints: monster.hit_points,
       originalHitPoints: monster.hit_points,
+      type: monster.type, // Lägg till monster-typ
+      size: monster.size, // Lägg till storlek
     }))
 
     if (resetResults) {
@@ -57,6 +108,7 @@ const searchMonsters = async (resetResults = true) => {
     isLoading.value = false
   }
 }
+
 
 // Funktion för att ladda fler resultat
 const loadMoreResults = async () => {
@@ -145,12 +197,38 @@ onUnmounted(() => {
       <button v-else @click="doEdit(false)">Cancel</button>
     </div>
 
-    <form class="search-form" @submit.prevent="searchMonsters(true)">
+    <form class="search-form" @submit.prevent="searchMonsters">
       <input v-model="searchQuery" type="text" placeholder="Search for monsters">
-      <button :disabled="!searchQuery || isLoading" class="btn btn-primary">
+      <button :disabled="!searchQuery" class="btn btn-primary">
         {{ isLoading ? 'Searching...' : 'Search' }}
       </button>
     </form>
+
+    <!-- Lägg till filter om du vill -->
+    <div class="filter-section" v-if="searchQuery">
+      <label>
+        <input type="checkbox" v-model="showAdvancedSearch"> Show filters
+      </label>
+
+      <div v-if="showAdvancedSearch" class="advanced-filters">
+        <select v-model="selectedCR" @change="searchMonsters">
+          <option value="">Any CR</option>
+          <option value="0">CR 0</option>
+          <option value="1">CR 1</option>
+          <option value="2">CR 2</option>
+          <option value="3">CR 3</option>
+          <!-- etc -->
+        </select>
+
+        <select v-model="selectedType" @change="searchMonsters">
+          <option value="">Any Type</option>
+          <option value="dragon">Dragon</option>
+          <option value="humanoid">Humanoid</option>
+          <option value="beast">Beast</option>
+          <!-- etc -->
+        </select>
+      </div>
+    </div>
 
     <!-- Visa antal träffar -->
     <div v-if="totalResults > 0" class="search-results-info">
