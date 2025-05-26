@@ -75,27 +75,7 @@ const exportFavorites = () => {
 </template>
 
 <style scoped>
-/* Använd samma styling som TheMonsterList */
-h1 {
-  position: relative;
-  border-bottom: solid 1px #292929;
-  margin-bottom: 10px;
-}
-
-h3 {
-  position: relative;
-  border-bottom: 2px solid #ccc;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-.blink {
-  animation: blink-animation 1s;
-}
-
+/* Monster list specifik layout */
 .monster-list-header {
   display: flex;
   justify-content: space-between;
@@ -127,16 +107,12 @@ ul {
   text-align: center;
 }
 
+/* Monster list item layout */
 li {
   display: flex;
   justify-content: space-between;
   cursor: pointer;
-  padding: 0.5rem 0;
   border-bottom: 1px solid #333;
-}
-
-li:hover {
-  background-color: rgba(255, 255, 255, 0.05);
 }
 
 li span:first-child {
@@ -164,25 +140,14 @@ li span:last-child {
   text-align: center;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
+/* Favorite count styling */
 .favorite-count {
   margin-bottom: 1rem;
   color: #ccc;
   font-size: 0.9rem;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: #888;
-  font-style: italic;
-}
-
+/* Remove button specifik styling */
 .remove-btn {
   background: none;
   border: none;
@@ -197,17 +162,5 @@ li span:last-child {
 .remove-btn:hover {
   background-color: rgba(255, 68, 68, 0.2);
   color: #ff6666;
-}
-
-@media (min-width: 768px) {
-  .favorite-container {
-    padding: 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .favorite-container {
-    padding: 2rem;
-  }
 }
 </style>

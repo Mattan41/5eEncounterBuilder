@@ -44,7 +44,6 @@ defineEmits(['toggleMonsterList', 'toggleFavoriteList']);
 .app-title {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #ff9100;
   margin: 0;
 }
 
@@ -53,19 +52,7 @@ defineEmits(['toggleMonsterList', 'toggleFavoriteList']);
   gap: 0.5rem;
 }
 
-button {
-  padding: 0.5rem 1rem;
-  background-color: #ff9100;
-  border: none;
-  border-radius: 5px;
-  color: #fff;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #ff7b00;
-}
-
+/* Responsiv text för buttons */
 .button-text {
   display: none;
 }

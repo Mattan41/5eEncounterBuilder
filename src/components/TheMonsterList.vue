@@ -322,60 +322,19 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Add the blink effect */
-.blink {
-  animation: blink-animation 1s;
-}
-
-/* Other styles from original */
-h1 {
-  position: relative;
-  border-bottom: solid 1px #292929;
+/* Monster list specifik layout */
+.monster-list-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
   margin-bottom: 10px;
 }
 
-h3 {
-  position: relative;
-  border-bottom: 2px solid #ccc;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-.favorite-btn {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: #ccc;
-  padding: 0.2rem;
-  border-radius: 3px;
-  transition: all 0.3s ease;
-}
-
-.favorite-btn:hover {
-  color: #ff9100;
-  background-color: rgba(255, 145, 0, 0.1);
-}
-
-
-
-.monster-list-header span:last-child,
-li span:last-child {
-  flex-grow: 0;
-  width: 3rem;
-  text-align: center;
-}
-
-/* Monster name*/
 .monster-list-header span:first-child {
   flex-grow: 2;
   text-align: left;
 }
 
-/*CR*/
 .monster-list-header span:nth-child(2) {
   flex-grow: 1;
   margin-left: auto;
@@ -383,24 +342,23 @@ li span:last-child {
   text-align: center;
 }
 
-/*HP*/
-.monster-list-header span:nth-child(3),
-li span:nth-child(3) {
+.monster-list-header span:nth-child(3) {
   text-align: right;
   margin-right: 1rem;
 }
 
+.monster-list-header span:last-child {
+  flex-grow: 0;
+  width: 3rem;
+  text-align: center;
+}
+
+/* Monster list items */
 li {
   display: flex;
   justify-content: space-between;
 }
 
-li span {
-  flex: 1;
-  text-align: center;
-}
-
-/* Monster name*/
 li span:first-child {
   text-align: left;
   overflow: hidden;
@@ -409,38 +367,31 @@ li span:first-child {
   flex-grow: 2;
 }
 
-/*CR*/
 li span:nth-child(2) {
   flex-grow: 1;
   margin-left: 1rem;
+  text-align: center;
 }
 
-/*HP*/
-li span:last-child {
+li span:nth-child(3) {
   text-align: right;
+  margin-right: 1rem;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+li span:last-child {
+  flex-grow: 0;
+  width: 3rem;
+  text-align: center;
 }
 
+/* Add monster form */
 .add-monsters-form {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.add-monsters-form input {
-  padding: 0.5rem;
-  border-radius: 5px;
-  border: 1px solid #555;
-  background-color: #444;
-  color: white;
-}
-
-/* Nya stilar för sökfunktionen - matchar den ursprungliga stilen */
+/* Search form */
 .search-form {
   display: flex;
   flex-direction: column;
@@ -448,14 +399,7 @@ li span:last-child {
   margin-bottom: 1rem;
 }
 
-.search-form input {
-  padding: 0.5rem;
-  border-radius: 5px;
-  border: 1px solid #555;
-  background-color: #444;
-  color: white;
-}
-
+/* Search results info */
 .search-results-info {
   margin-bottom: 1rem;
   padding: 0.5rem;
@@ -470,13 +414,13 @@ li span:last-child {
   font-size: 0.9rem;
 }
 
-/* Scroll container - minimal styling för att passa originalet */
+/* Scroll container för infinite scroll */
 .monsters-scroll-container {
   max-height: 60vh;
   overflow-y: auto;
 }
 
-/* Scrollbar styling för webkit browsers */
+/* Scrollbar styling */
 .monsters-scroll-container::-webkit-scrollbar {
   width: 8px;
 }
@@ -494,8 +438,7 @@ li span:last-child {
   background: #666;
 }
 
-
-
+/* Loading och end states */
 .loading-indicator,
 .end-of-results {
   text-align: center;
@@ -510,19 +453,27 @@ li span:last-child {
   margin: 0;
 }
 
-@media (min-width: 768px) {
-  .monster-container {
-    padding: 1.5rem;
-  }
-
-  .search-form {
-    flex-direction: row;
-  }
+/* Favorite button */
+.favorite-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #ccc;
+  padding: 0.2rem;
+  border-radius: 3px;
+  transition: all 0.3s ease;
 }
 
-@media (min-width: 1024px) {
-  .monster-container {
-    padding: 2rem;
+.favorite-btn:hover {
+  color: #ff9100;
+  background-color: rgba(255, 145, 0, 0.1);
+}
+
+/* Responsiv design för search form */
+@media (min-width: 768px) {
+  .search-form {
+    flex-direction: row;
   }
 }
 </style>
