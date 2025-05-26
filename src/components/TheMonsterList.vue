@@ -5,7 +5,7 @@ import { saveCombatMonsters, store, addToFavorites } from '../store.js'
 const monsters = ref([])
 const header = ref('Monster List')
 const editing = ref(false)
-const searchQuery = ref('') // Nytt sökfält
+const searchQuery = ref('')
 const newMonster = ref("")
 const newMonsterHP = ref(0)
 const newMonsterCR = ref("0")
@@ -15,8 +15,6 @@ const showAdvancedSearch = ref(false)
 const selectedCR = ref('')
 const selectedType = ref('')
 
-
-// Nya variabler för infinite scroll
 const totalResults = ref(0)
 const currentPage = ref(1)
 const isLoading = ref(false)
@@ -67,7 +65,6 @@ const searchMonsters = async (resetResults = true) => {
   }
 }
 
-
 const loadMoreResults = async () => {
   if (!hasMoreResults.value || isLoading.value) return
 
@@ -86,25 +83,6 @@ const handleScroll = () => {
     loadMoreResults()
   }
 }
-
-// const saveMonster = () => {
-//   const monster = {
-//     id: `custom_${Date.now()}`,
-//     label: newMonster.value,
-//     challengeRating: parseFloat(newMonsterCR.value),
-//     hitPoints: newMonsterHP.value,
-//     originalHitPoints: newMonsterHP.value,
-//   }
-//   monsters.value.unshift(monster) // Lägg till i början av listan
-//   if (newMonsterInCombat.value) {
-//     store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0, done: false })
-//     saveCombatMonsters()
-//   }
-//   newMonster.value = ""
-//   newMonsterHP.value = null
-//   newMonsterCR.value = ""
-//   newMonsterInCombat.value = false
-// }
 
 const saveMonster = () => {
   const monster = {
@@ -160,7 +138,6 @@ const addToFavoritesOnly = (monster, event) => {
 
   const added = addToFavorites(monster)
   if (added) {
-    // Lägg till visuell feedback
     const button = event.currentTarget
     button.textContent = '★'
     button.style.color = '#ff9100'
@@ -170,20 +147,6 @@ const addToFavoritesOnly = (monster, event) => {
     }, 1000)
   }
 }
-
-// Lägg till monster i combat-listan
-// const addToCombatList = (monster, event) => {
-//   event.preventDefault()
-//   if (event.type === 'click') {
-//     store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0, done: false })
-//     saveCombatMonsters()
-//     const listItem = event.currentTarget
-//     listItem.classList.add('blink')
-//     setTimeout(() => {
-//       listItem.classList.remove('blink')
-//     }, 1000)
-//   }
-// }
 
 const doEdit = (e) => {
   editing.value = e
@@ -270,21 +233,6 @@ onUnmounted(() => {
       </button>
     </form>
 
-<!--    <h3 class="monster-list-header">-->
-<!--      <span>Name</span>-->
-<!--      <span>CR</span>-->
-<!--      <span>HP</span>-->
-<!--    </h3>-->
-
-<!--    &lt;!&ndash; Scrollbar container för infinite scroll &ndash;&gt;-->
-<!--    <div class="monsters-scroll-container">-->
-<!--      <ul>-->
-<!--        <li v-for="monster in monsters" @click="addToCombatList(monster, $event)" :key="monster.id">-->
-<!--          <span>{{ monster.label }}</span>-->
-<!--          <span>{{ monster.challengeRating }}</span>-->
-<!--          <span>{{ monster.hitPoints }}</span>-->
-<!--        </li>-->
-<!--      </ul>-->
     <h3 class="monster-list-header">
       <span>Name</span>
       <span>CR</span>
