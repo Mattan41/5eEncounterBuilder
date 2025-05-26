@@ -21,7 +21,6 @@ const toggleCombatEncounter = () => {
   showCombatEncounter.value = !showCombatEncounter.value
 }
 
-
 const getMainClass = computed(() => {
   const visibleCount = [
     showCombatEncounter.value,
@@ -63,7 +62,6 @@ const getMainClass = computed(() => {
   min-height: 100vh;
 }
 
-/* Mobile first: alltid column layout */
 main {
   display: flex;
   flex-direction: column;
@@ -71,32 +69,56 @@ main {
   padding: 1rem;
 }
 
-/* Tablet och desktop: grid layout */
 @media (min-width: 768px) {
   main {
     display: grid;
     gap: 1rem;
     padding: 1rem;
+    max-width: 100%;
   }
 
   main.single-column {
     grid-template-columns: 1fr;
-    justify-items: center;
+    max-width: 800px;
+    margin: 0 auto;
   }
 
   main.two-columns {
     grid-template-columns: 1fr 1fr;
+    max-width: 1400px;
+    margin: 0 auto;
   }
 
   main.three-columns {
-    grid-template-columns: 1fr 1fr 1fr;
+    display: flex;
+    flex-direction: column;
+    max-width: 1600px;
+    margin: 0 auto;
   }
 }
 
-@media (min-width: 1400px) {
+/* Större skärmar: bättre hantering av tre kolumner */
+@media (min-width: 1200px) {
   main.three-columns {
-    grid-template-columns: repeat(3, minmax(400px, 500px));
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 1rem;
+  }
+
+  main.three-columns > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1800px) {
+  main.three-columns {
+    grid-template-columns: repeat(3, minmax(400px, 1fr));
+    grid-template-rows: auto;
+  }
+
+  main.three-columns > :first-child {
+    grid-column: auto;
   }
 }
 </style>
