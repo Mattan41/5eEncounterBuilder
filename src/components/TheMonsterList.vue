@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { saveCombatMonsters, store, addToFavorites } from '../store.js'
+import {onMounted, ref} from 'vue'
+import {addToFavorites, saveCombatMonsters, store} from '../store.js'
 import MonsterSearch from "@/components/MonsterSearch.vue"
 import AddMonsterModal from "@/modals/AddMonsterModal.vue"
 
@@ -20,12 +20,9 @@ const selectedDocument = ref('')
 const sortBy = ref('name')
 const sortOrder = ref('asc')
 
-// Pagination states
-const totalResults = ref(0)
-const currentPage = ref(1)
+// Loading state
 const isLoading = ref(false)
-const hasMoreResults = ref(false)
-const resultsPerPage = 10
+const totalResults = ref(0)
 
 const searchMonsters = async (resetResults = true) => {
   if (isLoading.value) return
@@ -35,24 +32,17 @@ const searchMonsters = async (resetResults = true) => {
 
     if (resetResults) {
       monsters.value = []
-      currentPage.value = 1
     }
-
-    const offset = (currentPage.value - 1) * resultsPerPage
 
     // Bygg query string
     let queryParams = new URLSearchParams({
-      //search: searchQuery.value,
-      limit: resultsPerPage,
-      offset: offset,
-      ordering: sortOrder.value === 'desc' ? `-${sortBy.value}` : sortBy.value
+      limit: 1000, // Justera antal hämtade monster
     })
 
-    // Lägg till sökfråga
+    // Lägg till sökfråga och filter
     if (searchQuery.value) {
       queryParams.append('name__icontains', searchQuery.value);
     }
-    // Lägg till filter
     if (selectedCR.value) {
       queryParams.append('challenge_rating__gte', selectedCR.value)
     }
@@ -69,31 +59,16 @@ const searchMonsters = async (resetResults = true) => {
     const response = await fetch(`https://api.open5e.com/monsters/?${queryParams}`)
     const data = await response.json()
 
-    totalResults.value = data.count
-    hasMoreResults.value = data.next !== null
-
-
-    const newMonsters = data.results.map((monster, index) => ({
-      // API data (behåll originalet för CreatureModal!)
+    totalResults.value = data.count; // Spara totalantalet
+    monsters.value = data.results.map((monster) => ({
       ...monster,
-
-      // Legacy fields för combat system compatibility
-      id: `api_${monster.slug || offset + index}`,
+      id: `api_${monster.slug}`,
       label: monster.name,
       challengeRating: parseFloat(monster.challenge_rating || 0),
       hitPoints: monster.hit_points,
-      originalHitPoints: monster.hit_points,
       armorClass: monster.armor_class,
-      document: monster.document__title || 'Unknown',
-
-      // Markera som API monster
       source: 'open5e'
-    }))
-    if (resetResults) {
-      monsters.value = newMonsters
-    } else {
-      monsters.value.push(...newMonsters)
-    }
+    }));
 
   } catch (error) {
     console.log('Error fetching monsters', error)
@@ -101,7 +76,6 @@ const searchMonsters = async (resetResults = true) => {
     isLoading.value = false
   }
 }
-
 // Sortering
 const sortMonsters = (field) => {
   if (sortBy.value === field) {
@@ -120,25 +94,6 @@ const getSortIcon = (field) => {
 
 const getSortClass = (field) => {
   return sortBy.value === field ? 'sorted' : ''
-}
-
-// Pagination och scroll
-const loadMoreResults = async () => {
-  if (!hasMoreResults.value || isLoading.value) return
-  currentPage.value++
-  await searchMonsters(false)
-}
-
-const handleScroll = () => {
-  const scrollContainer = document.querySelector('.monsters-scroll-container')
-  if (!scrollContainer) return
-
-  const { scrollTop, scrollHeight, clientHeight } = scrollContainer
-  const threshold = 100
-
-  if (scrollHeight - scrollTop - clientHeight < threshold && hasMoreResults.value && !isLoading.value) {
-    loadMoreResults()
-  }
 }
 
 // Monster actions
@@ -180,19 +135,10 @@ const addToFavoritesOnly = (monster, event) => {
 
 // Lifecycle hooks
 onMounted(() => {
-  const scrollContainer = document.querySelector('.monsters-scroll-container')
-  if (scrollContainer) {
-    scrollContainer.addEventListener('scroll', handleScroll)
-  }
 })
 
-onUnmounted(() => {
-  const scrollContainer = document.querySelector('.monsters-scroll-container')
-  if (scrollContainer) {
-    scrollContainer.removeEventListener('scroll', handleScroll)
-  }
-})
 </script>
+
 
 <template>
   <div class="monster-container container">
@@ -203,7 +149,6 @@ onUnmounted(() => {
       </button>
     </div>
 
-    <!-- MonsterSearch komponenten -->
     <MonsterSearch
         v-model:search-query="searchQuery"
         v-model:selected-c-r="selectedCR"
@@ -212,11 +157,9 @@ onUnmounted(() => {
         v-model:selected-document="selectedDocument"
         v-model:show-advanced-search="showAdvancedSearch"
         :is-loading="isLoading"
-        :total-results="totalResults"
         @search="searchMonsters(true)"
     />
 
-    <!-- Klickbar Monster List Header med sortering -->
     <div class="monster-list-header">
       <span @click="sortMonsters('name')" :class="getSortClass('name')" class="sortable">
         Name {{ getSortIcon('name') }}
@@ -236,7 +179,8 @@ onUnmounted(() => {
       <span>Fav</span>
     </div>
 
-    <!-- Monster List -->
+    <p v-if="totalResults > 0">Found {{ totalResults }} monsters</p>
+
     <div class="monsters-scroll-container">
       <ul>
         <li v-for="monster in monsters" @click="addToCombatList(monster, $event)" :key="monster.id">
@@ -256,18 +200,11 @@ onUnmounted(() => {
         </li>
       </ul>
 
-      <!-- Loading indikator -->
       <div v-if="isLoading" class="loading-indicator">
-        <p>Loading more monsters...</p>
-      </div>
-
-      <!-- Meddelande när alla resultat är laddade -->
-      <div v-if="!hasMoreResults && monsters.length > 0 && totalResults > resultsPerPage" class="end-of-results">
-        <p>All results loaded</p>
+        <p>Loading monsters...</p>
       </div>
     </div>
 
-    <!-- Add Monster Modal -->
     <AddMonsterModal
         :is-open="showAddModal"
         @close="showAddModal = false"
@@ -402,6 +339,31 @@ li.blink {
 .monsters-scroll-container::-webkit-scrollbar-thumb:hover {
   background: #666;
 }
+
+.monsters-scroll-container {
+  max-height: 60vh; /* Justera vid behov */
+  overflow-y: auto;
+}
+
+/* Scroll styling */
+.monsters-scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.monsters-scroll-container::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+.monsters-scroll-container::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.monsters-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+
 
 /* Loading och end states */
 .loading-indicator,

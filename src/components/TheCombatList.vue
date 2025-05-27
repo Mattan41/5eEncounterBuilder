@@ -212,6 +212,10 @@ const handleTouchEnd = (monster, event) => {
   width: 100%;
 }
 
+.header.pulsate {
+  animation: pulsate 3s infinite;
+}
+
 .buttons {
   display: flex;
   gap: 0.5rem;
