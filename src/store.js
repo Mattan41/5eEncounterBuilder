@@ -26,58 +26,6 @@ export const saveFavoriteMonsters = () => {
   localStorage.setItem('favoriteMonsters', JSON.stringify(store.favoriteMonsters))
 }
 
-// Helper function to add a monster to favorites (kompatibel med både gamla och nya monsters)
-// export const addToFavorites = (monster) => {
-//   // Hantera både gamla monsters (label) och nya Open5e monsters (name + slug)
-//   const monsterName = monster.name || monster.label
-//   const monsterSlug = monster.slug
-//   const monsterCR = monster.challenge_rating || monster.challengeRating
-//
-//   // Kolla om monstret redan finns (försök med olika identifierare)
-//   const existingMonster = store.favoriteMonsters.find(m => {
-//     // Om båda har slug, använd det (mest tillförlitligt)
-//     if (monsterSlug && m.slug) {
-//       return m.slug === monsterSlug
-//     }
-//     // Annars fallback till namn + CR
-//     const existingName = m.name || m.label
-//     const existingCR = m.challenge_rating || m.challengeRating
-//     return existingName === monsterName && existingCR === monsterCR
-//   })
-//
-//   if (!existingMonster) {
-//     const favoriteMonster = {
-//       // Behåll gamla fält för bakåtkompatibilitet
-//       id: monster.slug || `fav_${Date.now()}`,
-//       label: monsterName,  // För gamla komponenter
-//
-//       // Nya Open5e fält
-//       slug: monster.slug,
-//       name: monsterName,
-//       type: monster.type,
-//       size: monster.size,
-//       alignment: monster.alignment,
-//       challengeRating: monsterCR,
-//       challenge_rating: monsterCR, // Båda varianterna
-//       hitPoints: monster.hit_points || monster.hitPoints,
-//       hit_points: monster.hit_points || monster.hitPoints,
-//       armorClass: monster.armor_class || monster.armorClass,
-//       armor_class: monster.armor_class || monster.armorClass,
-//
-//       // Metadata
-//       addedToFavorites: new Date().toISOString(),
-//
-//       // Kopiera alla andra fält som finns
-//       ...monster
-//     }
-//
-//     store.favoriteMonsters.push(favoriteMonster)
-//     saveFavoriteMonsters()
-//     return true // Indicates the monster was added successfully
-//   }
-//   return false // The monster was already in favorites
-// }
-// store.js
 export const createCustomMonster = (monsterData) => {
   const customMonster = {
     // Grundläggande fält
@@ -102,7 +50,7 @@ export const createCustomMonster = (monsterData) => {
     // Custom fields
     desc: monsterData.description || '',
     actions: monsterData.actions || [],
-    special_abilities: monsterData.abilities || [],
+    special_abilities: monsterData.special_abilities || [],
 
     // Metadata
     isCustom: true,
@@ -113,7 +61,6 @@ export const createCustomMonster = (monsterData) => {
   return addToFavorites(customMonster)
 }
 
-// store.js
 export const addToFavorites = async (monster) => {
   console.log('🔍 addToFavorites called with:', monster)
 

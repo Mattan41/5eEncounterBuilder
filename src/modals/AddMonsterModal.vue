@@ -20,7 +20,21 @@ const newMonsterSize = ref("Medium")
 const newMonsterAC = ref(10)
 const newMonsterAlignment = ref("Neutral")
 const newMonsterDescription = ref("")
+const newMonsterSpecialAbilities = ref("")
 
+const specialAbilities = ref([""]); // Skapa en reaktiv array för specialförmågor
+
+const addAbility = () => {
+  specialAbilities.value.push(""); // Lägger till en tom string för en ny förmåga
+}
+
+const removeAbility = (index) => {
+  specialAbilities.value.splice(index, 1); // Tar bort förmågan vid det angivna indexet
+}
+
+const updateAbility = (index, value) => {
+  specialAbilities.value[index] = value; // Uppdaterar den specifika specialförmågan
+}
 // Ability scores
 const abilities = ref({
   strength: 10,
@@ -56,37 +70,25 @@ const clearForm = () => {
 }
 
 const saveMonster = async () => {
-  // Skapa custom monster med alla nya fält
   const customMonster = {
-    // Grundläggande info
     name: newMonster.value,
     type: newMonsterType.value,
     size: newMonsterSize.value,
     alignment: newMonsterAlignment.value,
-
-    // Combat stats
     armor_class: newMonsterAC.value,
     hit_points: newMonsterHP.value,
     challenge_rating: parseFloat(newMonsterCR.value),
-
-    // Ability scores
     strength: abilities.value.strength,
     dexterity: abilities.value.dexterity,
     constitution: abilities.value.constitution,
     intelligence: abilities.value.intelligence,
     wisdom: abilities.value.wisdom,
     charisma: abilities.value.charisma,
-
-    // Extra content
     desc: newMonsterDescription.value || `A custom ${newMonsterSize.value.toLowerCase()} ${newMonsterType.value.toLowerCase()}.`,
     actions: [],
-    special_abilities: [],
-
-    // Custom metadata
+    special_abilities: specialAbilities.value.map(ability => ability.trim()).filter(Boolean),
     isCustom: true,
     source: 'custom',
-
-    // Legacy compatibility för combat system
     id: `custom_${Date.now()}`,
     label: newMonster.value,
     challengeRating: parseFloat(newMonsterCR.value),
@@ -94,12 +96,12 @@ const saveMonster = async () => {
     originalHitPoints: newMonsterHP.value,
     armorClass: newMonsterAC.value,
     document: 'Custom'
-  }
+  };
 
-  console.log('🎨 Creating custom monster:', customMonster)
+  console.log('🎨 Creating custom monster:', customMonster);
 
-  // Lägg till i favorites
-  await addToFavorites(customMonster)
+  // Lägg till i favorit
+  await addToFavorites(customMonster);
 
   // Lägg till i combat om valt
   if (newMonsterInCombat.value) {
@@ -108,12 +110,12 @@ const saveMonster = async () => {
       combatId: Date.now(),
       initiative: 0,
       done: false
-    })
-    saveCombatMonsters()
+    });
+    saveCombatMonsters();
   }
 
-  clearForm()
-  closeModal()
+  clearForm();
+  closeModal();
 }
 
 const closeModal = () => {
@@ -277,6 +279,31 @@ const getAbilityModifier = (score) => {
             </div>
           </div>
         </div>
+
+        <!-- special_abilities -->
+<!--        <div class="form-section">-->
+<!--          <h3>Special Abilities (Optional)</h3>-->
+<!--          <div class="form-group">-->
+<!--            <label for="monster-special-abilities">Special Abilities</label>-->
+<!--            <textarea-->
+<!--                id="monster-special-abilities"-->
+<!--                v-model="newMonsterSpecialAbilities"-->
+<!--                placeholder="List special abilities, one per line..."-->
+<!--                rows="4"-->
+<!--            ></textarea>-->
+<!--          </div>-->
+<!--        </div>-->
+
+          <div class="form-section">
+            <h3>Special Abilities</h3>
+            <div v-for="(ability, index) in specialAbilities" :key="index" class="ability-input">
+              <input :value="ability" @input="updateAbility(index, $event.target.value)" placeholder="Ability Name" />
+              <button type="button" @click="removeAbility(index)">Remove</button>
+            </div>
+            <button type="button" @click="addAbility">Add Special Ability</button>
+          </div>
+
+
 
         <!-- Description -->
         <div class="form-section">

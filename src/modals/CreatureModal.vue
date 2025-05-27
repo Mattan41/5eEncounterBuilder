@@ -61,7 +61,7 @@ const fetchCreatureDetails = async (creature) => {
         // Säkerställ att alla UI-fält finns
         desc: creature.desc || creature.description || 'Custom monster - no description available',
         actions: creature.actions || [],
-        special_abilities: creature.special_abilities || creature.abilities || [],
+        special_abilities: creature.special_abilities || ['Custom monster - no special abilities available','Nada zipp'],
         speed: creature.speed || { walk: 30 },
         armor_class: creature.armor_class || 10,
         hit_points: creature.hit_points || 10,
@@ -195,7 +195,8 @@ const getChallengeRatingDisplay = (cr) => {
           <h2>
             {{ creatureDetails.name }}
             <span v-if="creatureDetails.isCustom || creatureDetails.source === 'custom'" class="custom-badge">Custom</span>
-            <span v-else-if="creatureDetails.source === 'open5e'" class="api-badge">Open5e</span>
+            <span v-else-if="creatureDetails.source === 'open5e'" class="api-badge">{{ creatureDetails.source }}</span>
+            <span v-if="creatureDetails.source === 'open5e'" class="source-badge">{{ creatureDetails.document__title }}</span>
           </h2>
           <p class="creature-subtitle">
             {{ creatureDetails.size }} {{ creatureDetails.type }}
@@ -417,6 +418,15 @@ const getChallengeRatingDisplay = (cr) => {
 
 .api-badge {
   background: #059669;
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+  font-weight: normal;
+}
+
+.source-badge {
+  background: linear-gradient(135deg, #ff7e00, #ffb300);
   color: white;
   font-size: 0.7rem;
   padding: 0.3rem 0.6rem;
