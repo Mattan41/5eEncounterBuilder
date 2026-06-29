@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
+import { getOpen5e } from '../api/open5e.js'
 
 const props = defineProps({
   show: Boolean,
@@ -22,13 +23,54 @@ const createSlugFromName = (name) => {
       .trim()
 }
 
-// Hjälpfunktion för att hitta slug via API
-const findSlugViaAPI = async (name) => {
-  try {
-    const searchUrl = `https://api.open5e.com/v1/monsters/?search=${encodeURIComponent(name)}&limit=5`
+// Normalize v2 API response to match template field expectations
+const normalizeV2Creature = (v2) => {
+  const abilityScores = v2.ability_scores || {}
+  const allActions = v2.actions || []
+  const ri = v2.resistances_and_immunities || {}
 
-    const response = await fetch(searchUrl)
-    const data = await response.json()
+  const sensesParts = []
+  if (v2.darkvision_range) sensesParts.push(`darkvision ${v2.darkvision_range} ft.`)
+  if (v2.blindsight_range) sensesParts.push(`blindsight ${v2.blindsight_range} ft.`)
+  if (v2.tremorsense_range) sensesParts.push(`tremorsense ${v2.tremorsense_range} ft.`)
+  if (v2.truesight_range) sensesParts.push(`truesight ${v2.truesight_range} ft.`)
+
+  const savingThrows = v2.saving_throws || {}
+  const savingThrowsStr = Object.entries(savingThrows)
+    .filter(([, val]) => val !== 0)
+    .map(([key, val]) => `${key.charAt(0).toUpperCase() + key.slice(1)} ${val >= 0 ? '+' : ''}${val}`)
+    .join(', ')
+
+  return {
+    ...v2,
+    slug: v2.key,
+    type: typeof v2.type === 'object' ? (v2.type?.name || 'Unknown') : v2.type,
+    subtype: v2.subcategory || v2.subtype || '',
+    strength:     abilityScores.strength     ?? v2.strength,
+    dexterity:    abilityScores.dexterity    ?? v2.dexterity,
+    constitution: abilityScores.constitution ?? v2.constitution,
+    intelligence: abilityScores.intelligence ?? v2.intelligence,
+    wisdom:       abilityScores.wisdom       ?? v2.wisdom,
+    charisma:     abilityScores.charisma     ?? v2.charisma,
+    special_abilities: v2.traits || [],
+    actions:           allActions.filter(a => a.action_type === 'ACTION'),
+    legendary_actions: allActions.filter(a => a.action_type === 'LEGENDARY_ACTION'),
+    reactions:         allActions.filter(a => a.action_type === 'REACTION'),
+    armor_desc:        v2.armor_detail || v2.armor_desc || '',
+    document__title:   v2.document?.name || v2.document__title || '',
+    senses:            sensesParts.join(', ') || v2.senses || '',
+    saving_throws:     savingThrowsStr || '',
+    skills:            v2.skill_bonuses || v2.skills || null,
+    damage_resistances:   ri.damage_resistances_display  || v2.damage_resistances  || '',
+    damage_immunities:    ri.damage_immunities_display   || v2.damage_immunities   || '',
+    condition_immunities: ri.condition_immunities_display || v2.condition_immunities || '',
+  }
+}
+
+// Hjälpfunktion för att hitta key via API
+const findKeyViaAPI = async (name) => {
+  try {
+    const data = await getOpen5e('/creatures/', { name__icontains: name, limit: 5 })
 
     if (data.results && data.results.length > 0) {
       // Försök hitta exakt match först
@@ -37,10 +79,10 @@ const findSlugViaAPI = async (name) => {
       )
 
       const foundMonster = exactMatch || data.results[0]
-      return foundMonster.slug
+      return foundMonster.key
     }
   } catch (error) {
-    // Ignorera fel och fallback till slug från namn
+    // Ignorera fel och fallback till key från namn
   }
 
   return createSlugFromName(name)
@@ -82,29 +124,22 @@ const fetchCreatureDetails = async (creature) => {
     }
 
     // 🌐 API MONSTER: Hämta från Open5e
-    let slug = creature.slug
+    let key = creature.key || creature.slug
 
-    // Om vi saknar slug, försök hitta den
-    if (!slug && creature.name) {
-      slug = await findSlugViaAPI(creature.name)
+    // Om vi saknar key, försök hitta den
+    if (!key && creature.name) {
+      key = await findKeyViaAPI(creature.name)
     }
 
-    if (!slug) {
-      throw new Error('Could not determine slug for creature')
+    if (!key) {
+      throw new Error('Could not determine key for creature')
     }
 
-    const url = `https://api.open5e.com/v1/monsters/${slug}/`
-    const response = await fetch(url)
+    const data = await getOpen5e(`/creatures/${key}/`)
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch from API (${response.status})`)
-    }
-
-    const data = await response.json()
-
-    // Markera som API-monster
+    // Markera som API-monster och normalisera v2 fält
     creatureDetails.value = {
-      ...data,
+      ...normalizeV2Creature(data),
       source: 'open5e'
     }
 

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, onMounted, computed} from 'vue'
+import { getOpen5e } from '../api/open5e.js'
 
 const props = defineProps({
   searchQuery: { type: String, default: '' },
@@ -46,22 +47,20 @@ watch(localShowAdvanced, (value) => emits('update:showAdvancedSearch', value))
 const fetchDocuments = async () => {
   try {
     loadingDocuments.value = true
-    const response = await fetch('https://api.open5e.com/documents/')
-    const data = await response.json()
+    const data = await getOpen5e('/documents/')
 
-    // Skapa listan utan monsters_count eftersom det inte finns i API:et
     availableDocuments.value = [
       { value: '', label: 'All Sources' },
       ...data.results
           .map(doc => ({
-            value: doc.slug,
-            label: doc.title
+            value: doc.key,
+            label: doc.name
           }))
           .sort((a, b) => a.label.localeCompare(b.label))
     ]
   } catch (error) {
     console.error('Error fetching documents:', error)
-    // Fallback med rätt slugs från API:et
+    // Fallback med kända v2 keys
     availableDocuments.value = [
       { value: '', label: 'All Sources' },
       { value: 'wotc-srd', label: '5e Core Rules' },
@@ -69,7 +68,7 @@ const fetchDocuments = async () => {
       { value: 'cc', label: 'Creature Codex' },
       { value: 'tob2', label: 'Tome of Beasts 2' },
       { value: 'tob3', label: 'Tome of Beasts 3' },
-      { value: 'menagerie', label: 'Monstrous Menagerie' }
+      { value: 'a5e-mm', label: 'Monstrous Menagerie' }
     ]
   } finally {
     loadingDocuments.value = false

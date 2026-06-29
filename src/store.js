@@ -1,5 +1,6 @@
 // store.js
 import { reactive } from 'vue'
+import { getOpen5e } from './api/open5e.js'
 
 const loadCombatMonsters = () => {
   const savedCombatMonsters = localStorage.getItem('combatMonsters')
@@ -99,9 +100,7 @@ export const addToFavorites = async (monster) => {
 
     try {
       // Försök hämta från Open5e API
-      const searchUrl = `https://api.open5e.com/v1/monsters/?search=${encodeURIComponent(monster.name)}&limit=5`
-      const response = await fetch(searchUrl)
-      const data = await response.json()
+      const data = await getOpen5e('/creatures/', { name__icontains: monster.name, limit: 5 })
 
       if (data.results && data.results.length > 0) {
         // Försök hitta exakt match
@@ -114,6 +113,7 @@ export const addToFavorites = async (monster) => {
 
         monsterToSave = {
           ...apiMonster,
+          slug: apiMonster.key,
           source: 'open5e'
         }
       } else {
@@ -207,13 +207,7 @@ export const searchMonsters = async (searchTerm, page = 1) => {
   }
 
   try {
-    const response = await fetch(`https://api.open5e.com/v1/monsters/?search=${encodeURIComponent(searchTerm)}&page=${page}`)
-
-    if (!response.ok) {
-      throw new Error(`Search failed: ${response.status}`)
-    }
-
-    const data = await response.json()
+    const data = await getOpen5e('/creatures/', { name__icontains: searchTerm, page })
 
     // Uppdatera store med sökresultat
     if (page === 1) {
@@ -236,13 +230,7 @@ export const searchMonsters = async (searchTerm, page = 1) => {
 // Helper för att ladda alla monsters (utan sökning)
 export const loadAllMonsters = async (page = 1) => {
   try {
-    const response = await fetch(`https://api.open5e.com/v1/monsters/?page=${page}`)
-
-    if (!response.ok) {
-      throw new Error(`Failed to load monsters: ${response.status}`)
-    }
-
-    const data = await response.json()
+    const data = await getOpen5e('/creatures/', { page })
 
     // Uppdatera store
     if (page === 1) {
