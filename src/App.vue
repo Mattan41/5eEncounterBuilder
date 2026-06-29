@@ -97,7 +97,7 @@ main {
   }
 }
 
-/* Större skärmar: bättre hantering av tre kolumner */
+/* Larger screens: three-column layout */
 @media (min-width: 1200px) {
   main.three-columns {
     display: grid;

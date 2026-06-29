@@ -8,13 +8,13 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-// Utökad form data för custom monsters
+// Form data for custom monsters
 const newMonster = ref("")
 const newMonsterHP = ref(0)
 const newMonsterCR = ref("0")
 const newMonsterInCombat = ref(false)
 
-// Nya fält för bättre custom monsters
+// Additional fields for richer custom monsters
 const newMonsterType = ref("Humanoid")
 const newMonsterSize = ref("Medium")
 const newMonsterAC = ref(10)
@@ -22,18 +22,18 @@ const newMonsterAlignment = ref("Neutral")
 const newMonsterDescription = ref("")
 const newMonsterSpecialAbilities = ref("")
 
-const specialAbilities = ref([""]); // Skapa en reaktiv array för specialförmågor
+const specialAbilities = ref([""]); // Reactive array for special abilities
 
 const addAbility = () => {
-  specialAbilities.value.push(""); // Lägger till en tom string för en ny förmåga
+  specialAbilities.value.push(""); // Add an empty entry for a new ability
 }
 
 const removeAbility = (index) => {
-  specialAbilities.value.splice(index, 1); // Tar bort förmågan vid det angivna indexet
+  specialAbilities.value.splice(index, 1); // Remove the ability at the given index
 }
 
 const updateAbility = (index, value) => {
-  specialAbilities.value[index] = value; // Uppdaterar den specifika specialförmågan
+  specialAbilities.value[index] = value; // Update the specific special ability
 }
 // Ability scores
 const abilities = ref({
@@ -51,7 +51,7 @@ const clearForm = () => {
   newMonsterCR.value = "0"
   newMonsterInCombat.value = false
 
-  // Rensa nya fält
+  // Reset additional fields
   newMonsterType.value = "Humanoid"
   newMonsterSize.value = "Medium"
   newMonsterAC.value = 10
@@ -100,10 +100,10 @@ const saveMonster = async () => {
 
   console.log('🎨 Creating custom monster:', customMonster);
 
-  // Lägg till i favorit
+  // Add to favorites
   await addToFavorites(customMonster);
 
-  // Lägg till i combat om valt
+  // Add to combat if selected
   if (newMonsterInCombat.value) {
     store.combatMonsters.push({
       ...customMonster,
@@ -129,7 +129,7 @@ const handleBackdropClick = (event) => {
   }
 }
 
-// Hjälpfunktion för ability modifier
+// Helper function for ability modifier
 const getAbilityModifier = (score) => {
   const modifier = Math.floor((score - 10) / 2)
   return modifier >= 0 ? `+${modifier}` : `${modifier}`

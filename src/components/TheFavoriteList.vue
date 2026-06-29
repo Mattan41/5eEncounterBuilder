@@ -405,7 +405,7 @@ ul {
     grid-template-columns: 2fr 1fr 0.6fr 0.4fr;
   }
 
-  /* Dölj Type på små skärmar */
+  /* Hide Type on small screens */
   .monster-list-header span:nth-child(2),
   .favorite-item .monster-type {
     display: none;
@@ -421,7 +421,7 @@ ul {
     grid-template-columns: 2fr 0.8fr 0.4fr;
   }
 
-  /* Dölj HP också på riktigt små skärmar */
+  /* Hide HP also on very small screens */
   .monster-list-header span:nth-child(4),
   .favorite-item .monster-hp {
     display: none;
