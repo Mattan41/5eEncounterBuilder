@@ -3,6 +3,7 @@ import {onMounted, ref} from 'vue'
 import {addToFavorites, saveCombatMonsters, store} from '../store.js'
 import MonsterSearch from "@/components/MonsterSearch.vue"
 import AddMonsterModal from "@/modals/AddMonsterModal.vue"
+import { getOpen5e } from '../api/open5e.js'
 
 const monsters = ref([])
 const header = ref('Monster List')
@@ -34,41 +35,29 @@ const searchMonsters = async (resetResults = true) => {
       monsters.value = []
     }
 
-    // Bygg query string
-    let queryParams = new URLSearchParams({
-      limit: 1000, // Justera antal hämtade monster
-    })
+    // Bygg query params
+    const params = { limit: 1000 }
 
     // Lägg till sökfråga och filter
-    if (searchQuery.value) {
-      queryParams.append('name__icontains', searchQuery.value);
-    }
-    if (selectedCR.value) {
-      queryParams.append('challenge_rating__gte', selectedCR.value)
-    }
-    if (selectedCRMax.value) {
-      queryParams.append('challenge_rating__lte', selectedCRMax.value)
-    }
-    if (selectedType.value) {
-      queryParams.append('type', selectedType.value)
-    }
-    if (selectedDocument.value) {
-      queryParams.append('document__slug', selectedDocument.value)
-    }
+    if (searchQuery.value)    params.name__icontains = searchQuery.value
+    if (selectedCR.value)     params.challenge_rating__gte = selectedCR.value
+    if (selectedCRMax.value)  params.challenge_rating__lte = selectedCRMax.value
+    if (selectedType.value)   params.type = selectedType.value
+    if (selectedDocument.value) params.document__key__in = selectedDocument.value
 
-    const response = await fetch(`https://api.open5e.com/monsters/?${queryParams}`)
-    const data = await response.json()
+    const data = await getOpen5e('/creatures/', params)
 
-    totalResults.value = data.count; // Spara totalantalet
+    totalResults.value = data.count
     monsters.value = data.results.map((monster) => ({
       ...monster,
-      id: `api_${monster.slug}`,
+      id: `api_${monster.key}`,
       label: monster.name,
+      type: typeof monster.type === 'object' ? (monster.type?.name || '') : monster.type,
       challengeRating: parseFloat(monster.challenge_rating || 0),
       hitPoints: monster.hit_points,
       armorClass: monster.armor_class,
       source: 'open5e'
-    }));
+    }))
 
   } catch (error) {
     console.log('Error fetching monsters', error)
