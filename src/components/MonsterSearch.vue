@@ -31,7 +31,7 @@ const localSelectedType = ref(props.selectedType)
 const localSelectedDocument = ref(props.selectedDocument)
 const localShowAdvanced = ref(props.showAdvancedSearch)
 
-// Källor från API
+// Sources from API
 const availableDocuments = ref([])
 const loadingDocuments = ref(false)
 
@@ -43,7 +43,7 @@ watch(localSelectedType, (value) => emits('update:selectedType', value))
 watch(localSelectedDocument, (value) => emits('update:selectedDocument', value))
 watch(localShowAdvanced, (value) => emits('update:showAdvancedSearch', value))
 
-// Hämta källor från API
+// Fetch sources from API
 const fetchDocuments = async () => {
   try {
     loadingDocuments.value = true
@@ -157,7 +157,7 @@ const hasActiveFilters = computed(() => {
 <template>
   <div class="search-section">
     <div class="search-form">
-      <!-- Grundläggande sök -->
+      <!-- Basic search -->
       <div class="search-row">
         <input
             v-model="localSearchQuery"
@@ -179,10 +179,10 @@ const hasActiveFilters = computed(() => {
         </div>
       </div>
 
-      <!-- Avancerad sökning -->
+      <!-- Advanced search -->
       <div v-if="localShowAdvanced" class="advanced-filters">
         <div class="filter-row">
-          <!-- Challenge Rating Spann -->
+          <!-- Challenge Rating range -->
           <div class="filter-group">
             <label>Challenge Rating</label>
             <div class="cr-range">
@@ -282,17 +282,17 @@ const hasActiveFilters = computed(() => {
 .search-row {
   display: flex;
   gap: 0.5rem;
-  flex-wrap: wrap; /* Lägg till denna */
+  flex-wrap: wrap;
 }
 
 .search-input {
   flex: 1;
-  min-width: 200px; /* Lägg till min-width */
+  min-width: 200px;
 }
 
 .advanced-toggle {
   white-space: nowrap;
-  flex-shrink: 0; /* Förhindra att knappen krymps */
+  flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 .advanced-filters {
@@ -373,18 +373,18 @@ const hasActiveFilters = computed(() => {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Responsiv design */
+/* Responsive design */
 @media (max-width: 767px) {
   .search-row {
-    flex-direction: column; /* Stack vertikalt på mobil */
+    flex-direction: column; /* Stack vertically on mobile */
   }
 
   .search-input {
-    min-width: unset; /* Ta bort min-width på mobil */
+    min-width: unset; /* Remove min-width on mobile */
   }
 
   .advanced-toggle {
-    white-space: normal; /* Tillåt text-wrapping på mobil */
+    white-space: normal; /* Allow text wrapping on mobile */
   }
 
   .filter-row {
@@ -403,11 +403,11 @@ const hasActiveFilters = computed(() => {
   }
 
   .advanced-filters {
-    padding: 0.75rem; /* Mindre padding på mobil */
+    padding: 0.75rem; /* Less padding on mobile */
   }
 }
 
-/* Extra små skärmar */
+/* Extra small screens */
 @media (max-width: 480px) {
   .search-section {
     margin-bottom: 0.75rem;

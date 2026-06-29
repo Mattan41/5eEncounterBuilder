@@ -102,7 +102,7 @@ defineEmits(['toggle-monster-list', 'toggle-favorite-list', 'toggle-combat-encou
   flex-shrink: 0;
 }
 
-/* Responsiv text för buttons */
+/* Responsive button text */
 .button-text {
   display: none;
 }

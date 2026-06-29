@@ -188,7 +188,7 @@ const handleTouchEnd = (monster, event) => {
   </div>
 </template>
 <style scoped>
-/* Animations från den gamla */
+/* Transition animations */
 .round-blink-enter-active, .round-blink-leave-active {
   transition: opacity 0.5s;
 }
@@ -197,7 +197,7 @@ const handleTouchEnd = (monster, event) => {
   opacity: 0;
 }
 
-/* Header layout - den gamla strukturen */
+/* Header layout */
 .header {
   display: grid;
   align-items: center;
@@ -235,7 +235,7 @@ h2 {
   margin: 0;
 }
 
-/* Monster layout - behåll den gamla mobilstrukturen */
+/* Monster layout */
 .monster-info {
   display: flex;
   flex-direction: column;
@@ -262,7 +262,7 @@ h2 {
   white-space: nowrap;
 }
 
-/* Initiative styling - den gamla layouten */
+/* Initiative styling */
 .initiative-group {
   display: flex;
   align-items: center;
@@ -280,7 +280,7 @@ h2 {
   border-radius: 5px;
 }
 
-/* D20 och tooltip från den gamla */
+/* D20 and tooltip */
 .roll-initiative {
   font-size: 0.8rem;
   position: relative;

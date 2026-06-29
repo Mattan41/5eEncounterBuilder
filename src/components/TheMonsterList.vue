@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, ref} from 'vue'
+import {onMounted, ref, computed} from 'vue'
 import {addToFavorites, saveCombatMonsters, store} from '../store.js'
 import MonsterSearch from "@/components/MonsterSearch.vue"
 import AddMonsterModal from "@/modals/AddMonsterModal.vue"
@@ -25,6 +25,14 @@ const sortOrder = ref('asc')
 const isLoading = ref(false)
 const totalResults = ref(0)
 
+// Convert fraction CR strings (e.g. "1/4") to decimal strings for the API
+const crToDecimal = (cr) => {
+  if (cr === '1/8') return '0.125'
+  if (cr === '1/4') return '0.25'
+  if (cr === '1/2') return '0.5'
+  return cr
+}
+
 const searchMonsters = async (resetResults = true) => {
   if (isLoading.value) return
 
@@ -35,14 +43,13 @@ const searchMonsters = async (resetResults = true) => {
       monsters.value = []
     }
 
-    // Bygg query params
+    // Build query params
     const params = { limit: 1000 }
 
-    // Lägg till sökfråga och filter
-    if (searchQuery.value)    params.name__icontains = searchQuery.value
-    if (selectedCR.value)     params.challenge_rating__gte = selectedCR.value
-    if (selectedCRMax.value)  params.challenge_rating__lte = selectedCRMax.value
-    if (selectedType.value)   params.type = selectedType.value
+    // Add search query and filters
+    if (searchQuery.value)      params.name__icontains = searchQuery.value
+    if (selectedCR.value)       params.challenge_rating__gte = crToDecimal(selectedCR.value)
+    if (selectedCRMax.value)    params.challenge_rating__lte = crToDecimal(selectedCRMax.value)
     if (selectedDocument.value) params.document__key__in = selectedDocument.value
 
     const data = await getOpen5e('/creatures/', params)
@@ -51,6 +58,7 @@ const searchMonsters = async (resetResults = true) => {
     monsters.value = data.results.map((monster) => ({
       ...monster,
       id: `api_${monster.key}`,
+      slug: monster.key,
       label: monster.name,
       type: typeof monster.type === 'object' ? (monster.type?.name || '') : monster.type,
       challengeRating: parseFloat(monster.challenge_rating || 0),
@@ -65,7 +73,36 @@ const searchMonsters = async (resetResults = true) => {
     isLoading.value = false
   }
 }
-// Sortering
+// Client-side type filter + sort — no re-fetch needed when sorting or filtering by type
+const displayMonsters = computed(() => {
+  let result = monsters.value
+
+  // Type filter (API type__key filter is unreliable, do it client-side)
+  if (selectedType.value) {
+    const typeLower = selectedType.value.toLowerCase()
+    result = result.filter(m => (m.type || '').toLowerCase() === typeLower)
+  }
+
+  // Sort
+  return [...result].sort((a, b) => {
+    let valA = a[sortBy.value]
+    let valB = b[sortBy.value]
+
+    if (sortBy.value === 'challengeRating' || sortBy.value === 'hitPoints' || sortBy.value === 'armorClass') {
+      valA = parseFloat(valA) || 0
+      valB = parseFloat(valB) || 0
+    } else {
+      valA = (valA ?? '').toString().toLowerCase()
+      valB = (valB ?? '').toString().toLowerCase()
+    }
+
+    if (valA < valB) return sortOrder.value === 'asc' ? -1 : 1
+    if (valA > valB) return sortOrder.value === 'asc' ? 1 : -1
+    return 0
+  })
+})
+
+// Sorting
 const sortMonsters = (field) => {
   if (sortBy.value === field) {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
@@ -73,7 +110,7 @@ const sortMonsters = (field) => {
     sortBy.value = field
     sortOrder.value = 'asc'
   }
-  searchMonsters(true)
+  // No re-fetch — displayMonsters computed reacts automatically
 }
 
 const getSortIcon = (field) => {
@@ -156,23 +193,23 @@ onMounted(() => {
       <span @click="sortMonsters('type')" :class="getSortClass('type')" class="sortable">
         Type {{ getSortIcon('type') }}
       </span>
-      <span @click="sortMonsters('challenge_rating')" :class="getSortClass('challenge_rating')" class="sortable">
-        CR {{ getSortIcon('challenge_rating') }}
+      <span @click="sortMonsters('challengeRating')" :class="getSortClass('challengeRating')" class="sortable">
+        CR {{ getSortIcon('challengeRating') }}
       </span>
-      <span @click="sortMonsters('hit_points')" :class="getSortClass('hit_points')" class="sortable">
-        HP {{ getSortIcon('hit_points') }}
+      <span @click="sortMonsters('hitPoints')" :class="getSortClass('hitPoints')" class="sortable">
+        HP {{ getSortIcon('hitPoints') }}
       </span>
-      <span @click="sortMonsters('armor_class')" :class="getSortClass('armor_class')" class="sortable">
-        AC {{ getSortIcon('armor_class') }}
+      <span @click="sortMonsters('armorClass')" :class="getSortClass('armorClass')" class="sortable">
+        AC {{ getSortIcon('armorClass') }}
       </span>
       <span>Fav</span>
     </div>
 
-    <p v-if="totalResults > 0">Found {{ totalResults }} monsters</p>
+    <p v-if="displayMonsters.length > 0">Found {{ displayMonsters.length }} monsters</p>
 
     <div class="monsters-scroll-container">
       <ul>
-        <li v-for="monster in monsters" @click="addToCombatList(monster, $event)" :key="monster.id">
+        <li v-for="monster in displayMonsters" @click="addToCombatList(monster, $event)" :key="monster.id">
           <span class="monster-name">{{ monster.label }}</span>
           <span class="monster-type">{{ monster.type }}</span>
           <span class="monster-cr">{{ monster.challengeRating }}</span>
@@ -414,7 +451,7 @@ li.blink {
     grid-template-columns: 2fr 1fr 0.5fr 0.5fr 0.4fr;
   }
 
-  /* Dölj AC på små skärmar */
+  /* Hide AC on small screens */
   .monster-list-header span:nth-child(5),
   li .monster-ac {
     display: none;

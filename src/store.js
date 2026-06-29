@@ -29,7 +29,7 @@ export const saveFavoriteMonsters = () => {
 
 export const createCustomMonster = (monsterData) => {
   const customMonster = {
-    // Grundläggande fält
+    // Basic fields
     name: monsterData.name,
     type: monsterData.type || 'Humanoid',
     size: monsterData.size || 'Medium',
@@ -67,18 +67,25 @@ export const addToFavorites = async (monster) => {
 
   let monsterToSave = { ...monster }
 
-  // Identifiera typ av monster
-  const isCustomMonster = monster.isCustom || monster.source === 'custom' || !monster.slug
+  // Identify monster type
+  const isCustomMonster = monster.isCustom || monster.source === 'custom' || (!monster.slug && !monster.key)
 
   if (isCustomMonster) {
-    console.log('🎨 Detta är ett custom monster')
+    console.log('🎨 This is a custom monster')
 
-    // För custom monsters: skapa egen slug och markera som custom
+    // For custom monsters: create a name-based slug and mark as custom
     const customSlug = `custom-${monster.name.toLowerCase()
         .replace(/[^\w\s-]/g, '')
         .replace(/[\s_]+/g, '-')
         .replace(/-+/g, '-')
-        .trim()}-${Date.now()}`
+        .trim()}`
+
+    // Prevent duplicates: check by name-based slug (no timestamp)
+    const existingCustom = store.favoriteMonsters.find(m => m.slug === customSlug)
+    if (existingCustom) {
+      console.log('ℹ️ Custom monster already in favorites')
+      return false
+    }
 
     monsterToSave = {
       ...monster,
@@ -86,7 +93,7 @@ export const addToFavorites = async (monster) => {
       id: customSlug,
       isCustom: true,
       source: 'custom',
-      // Säkerställ att vi har grundläggande fält för custom monsters
+      // Ensure basic fields are present for custom monsters
       type: monster.type || 'Unknown',
       size: monster.size || 'Medium',
       challenge_rating: monster.challenge_rating || monster.challengeRating || 0,
@@ -95,43 +102,20 @@ export const addToFavorites = async (monster) => {
 
     console.log('✅ Custom monster prepared:', monsterToSave)
 
-  } else if (!monster.slug && monster.name) {
-    console.log('🔄 API monster saknar slug, hämtar från Open5e...')
-
-    try {
-      // Försök hämta från Open5e API
-      const data = await getOpen5e('/creatures/', { name__icontains: monster.name, limit: 5 })
-
-      if (data.results && data.results.length > 0) {
-        // Försök hitta exakt match
-        const exactMatch = data.results.find(m =>
-            m.name.toLowerCase() === monster.name.toLowerCase()
-        )
-
-        const apiMonster = exactMatch || data.results[0]
-        console.log('✅ Hittade i Open5e API:', apiMonster.name)
-
-        monsterToSave = {
-          ...apiMonster,
-          slug: apiMonster.key,
-          source: 'open5e'
-        }
-      } else {
-        console.log('⚠️ Inte i API, behandlar som custom monster')
-        // Behandla som custom monster om inte hittas i API
-        return addToFavorites({ ...monster, isCustom: true })
-      }
-    } catch (error) {
-      console.error('❌ API search failed, behandlar som custom:', error)
-      return addToFavorites({ ...monster, isCustom: true })
-    }
   } else {
-    console.log('✅ Detta är redan ett komplett API monster')
+    console.log('✅ This is an API monster')
     monsterToSave.source = 'open5e'
+    // Ensure slug is set for API monsters (v2 uses key)
+    if (!monsterToSave.slug && monsterToSave.key) {
+      monsterToSave.slug = monsterToSave.key
+    }
   }
 
-  // Kolla om monstret redan finns (jämför på slug)
-  const existingMonster = store.favoriteMonsters.find(m => m.slug === monsterToSave.slug)
+  // Check if monster already exists (compare by slug or key)
+  const existingMonster = store.favoriteMonsters.find(m =>
+    (monsterToSave.slug && m.slug === monsterToSave.slug) ||
+    (monsterToSave.key && m.key === monsterToSave.key)
+  )
 
   if (!existingMonster) {
     const favoriteMonster = {
@@ -139,13 +123,13 @@ export const addToFavorites = async (monster) => {
       addedToFavorites: new Date().toISOString()
     }
 
-    console.log('💾 Sparar i favorites:', favoriteMonster.source, favoriteMonster.name)
+    console.log('💾 Saving to favorites:', favoriteMonster.source, favoriteMonster.name)
 
     store.favoriteMonsters.push(favoriteMonster)
     saveFavoriteMonsters()
     return true
   } else {
-    console.log('ℹ️ Monster finns redan i favorites')
+    console.log('ℹ️ Monster already in favorites')
     return false
   }
 }
@@ -159,12 +143,12 @@ export const removeFromFavorites = (monster) => {
     index = store.favoriteMonsters.findIndex(m => m.slug === monster.slug)
   }
 
-  // Fallback till id
+  // Fallback to id
   if (index === -1 && monster.id) {
     index = store.favoriteMonsters.findIndex(m => m.id === monster.id)
   }
 
-  // Sista fallback till namn + CR
+  // Final fallback to name + CR
   if (index === -1) {
     const monsterName = monster.name || monster.label
     const monsterCR = monster.challenge_rating || monster.challengeRating
@@ -181,25 +165,25 @@ export const removeFromFavorites = (monster) => {
   }
 }
 
-// Helper function för att kolla om monster redan är i favorites
+// Helper function to check if a monster is already in favorites
 export const isInFavorites = (monster) => {
   const monsterName = monster.name || monster.label
-  const monsterSlug = monster.slug
+  const monsterSlug = monster.slug || monster.key
   const monsterCR = monster.challenge_rating || monster.challengeRating
 
   return store.favoriteMonsters.some(m => {
-    // Om båda har slug, använd det
-    if (monsterSlug && m.slug) {
-      return m.slug === monsterSlug
+    // If both have a slug/key, use that
+    if (monsterSlug && (m.slug || m.key)) {
+      return m.slug === monsterSlug || m.key === monsterSlug
     }
-    // Annars fallback till namn + CR
+    // Fallback to name + CR
     const existingName = m.name || m.label
     const existingCR = m.challenge_rating || m.challengeRating
     return existingName === monsterName && existingCR === monsterCR
   })
 }
 
-// Ny helper function för att söka monsters från Open5e API
+// Helper function to search monsters from Open5e API
 export const searchMonsters = async (searchTerm, page = 1) => {
   if (!searchTerm.trim()) {
     store.monsters = []
@@ -209,11 +193,11 @@ export const searchMonsters = async (searchTerm, page = 1) => {
   try {
     const data = await getOpen5e('/creatures/', { name__icontains: searchTerm, page })
 
-    // Uppdatera store med sökresultat
+    // Update store with search results
     if (page === 1) {
       store.monsters = data.results || []
     } else {
-      // För paginering, lägg till nya resultat
+      // For pagination, append new results
       store.monsters = [...store.monsters, ...(data.results || [])]
     }
 
@@ -227,12 +211,12 @@ export const searchMonsters = async (searchTerm, page = 1) => {
   }
 }
 
-// Helper för att ladda alla monsters (utan sökning)
+// Helper function to load all monsters (without search)
 export const loadAllMonsters = async (page = 1) => {
   try {
     const data = await getOpen5e('/creatures/', { page })
 
-    // Uppdatera store
+    // Update store
     if (page === 1) {
       store.monsters = data.results || []
     } else {

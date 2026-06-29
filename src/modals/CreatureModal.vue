@@ -13,13 +13,13 @@ const creatureDetails = ref(null)
 const loading = ref(false)
 const error = ref(null)
 
-// Hjälpfunktion för att skapa slug från namn
+// Helper to build a slug from a name (fallback when API key lookup fails)
 const createSlugFromName = (name) => {
   return name.toLowerCase()
-      .replace(/[^\w\s-]/g, '')      // Ta bort specialtecken
-      .replace(/[\s_]+/g, '-')       // Ersätt mellanslag med bindestreck
-      .replace(/-+/g, '-')           // Ta bort dubbla bindestreck
-      .replace(/^-+|-+$/g, '')       // Ta bort bindestreck i början/slutet
+      .replace(/[^\w\s-]/g, '')      // Remove special characters
+      .replace(/[\s_]+/g, '-')       // Replace spaces with hyphens
+      .replace(/-+/g, '-')           // Remove duplicate hyphens
+      .replace(/^-+|-+$/g, '')       // Strip leading/trailing hyphens
       .trim()
 }
 
@@ -67,13 +67,13 @@ const normalizeV2Creature = (v2) => {
   }
 }
 
-// Hjälpfunktion för att hitta key via API
+// Helper to find a creature's API key by name
 const findKeyViaAPI = async (name) => {
   try {
     const data = await getOpen5e('/creatures/', { name__icontains: name, limit: 5 })
 
     if (data.results && data.results.length > 0) {
-      // Försök hitta exakt match först
+      // Prefer exact match, fall back to first result
       const exactMatch = data.results.find(m =>
           m.name.toLowerCase() === name.toLowerCase()
       )
@@ -82,13 +82,13 @@ const findKeyViaAPI = async (name) => {
       return foundMonster.key
     }
   } catch (error) {
-    // Ignorera fel och fallback till key från namn
+    // Ignore error, fall back to slug derived from name
   }
 
   return createSlugFromName(name)
 }
 
-// Huvudfunktion för att hämta creature details
+// Main function to fetch creature details
 const fetchCreatureDetails = async (creature) => {
   if (!creature) return
 
@@ -96,11 +96,11 @@ const fetchCreatureDetails = async (creature) => {
   error.value = null
 
   try {
-    // 🎨 CUSTOM MONSTER: Använd direkt data
+    // 🎨 CUSTOM MONSTER: Use data directly from props
     if (creature.isCustom || creature.source === 'custom') {
       creatureDetails.value = {
         ...creature,
-        // Säkerställ att alla UI-fält finns
+        // Ensure all UI fields are present
         desc: creature.desc || creature.description || 'Custom monster - no description available',
         actions: creature.actions || [],
         special_abilities: creature.special_abilities || ['Custom monster - no special abilities available','Nada zipp'],
@@ -123,10 +123,10 @@ const fetchCreatureDetails = async (creature) => {
       return
     }
 
-    // 🌐 API MONSTER: Hämta från Open5e
+    // 🌐 API MONSTER: Fetch from Open5e
     let key = creature.key || creature.slug
 
-    // Om vi saknar key, försök hitta den
+    // If key is missing, look it up via API
     if (!key && creature.name) {
       key = await findKeyViaAPI(creature.name)
     }
@@ -137,7 +137,7 @@ const fetchCreatureDetails = async (creature) => {
 
     const data = await getOpen5e(`/creatures/${key}/`)
 
-    // Markera som API-monster och normalisera v2 fält
+    // Mark as API monster and normalize v2 fields
     creatureDetails.value = {
       ...normalizeV2Creature(data),
       source: 'open5e'
@@ -150,14 +150,14 @@ const fetchCreatureDetails = async (creature) => {
   }
 }
 
-// Watch för creature changes
+// Watch for creature changes
 watch(() => props.creature, (newCreature) => {
   if (newCreature && props.show) {
     fetchCreatureDetails(newCreature)
   }
 }, { immediate: true })
 
-// Watch för modal open/close
+// Watch for modal open/close
 watch(() => props.show, (show) => {
   if (show && props.creature) {
     fetchCreatureDetails(props.creature)
