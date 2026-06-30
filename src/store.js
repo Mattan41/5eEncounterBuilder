@@ -2,6 +2,16 @@
 import { reactive } from 'vue'
 import { getOpen5e } from './api/open5e.js'
 
+export const formatCR = (cr) => {
+  const n = parseFloat(cr) || 0;
+  if (n === 0.125) return '1/8';
+  if (n === 0.25) return '1/4';
+  if (n === 0.5) return '1/2';
+
+  // Remove unnecessary decimals (e.g., 1.0 become 1)
+  return n.toString();
+}
+
 const loadCombatMonsters = () => {
   const savedCombatMonsters = localStorage.getItem('combatMonsters')
   return savedCombatMonsters ? JSON.parse(savedCombatMonsters) : []
@@ -97,6 +107,7 @@ export const addToFavorites = async (monster) => {
       type: monster.type || 'Unknown',
       size: monster.size || 'Medium',
       challenge_rating: monster.challenge_rating || monster.challengeRating || 0,
+      challenge_rating_display: formatCR(monster.challenge_rating || monster.challengeRating),
       alignment: monster.alignment || 'Unknown'
     }
 
@@ -138,7 +149,7 @@ export const addToFavorites = async (monster) => {
 export const removeFromFavorites = (monster) => {
   let index = -1
 
-  // Försök hitta med slug först
+  // Try slug first
   if (monster.slug) {
     index = store.favoriteMonsters.findIndex(m => m.slug === monster.slug)
   }

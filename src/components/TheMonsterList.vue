@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, ref, computed} from 'vue'
-import {addToFavorites, saveCombatMonsters, store} from '../store.js'
+import {addToFavorites, saveCombatMonsters, formatCR, store} from '../store.js'
 import MonsterSearch from "@/components/MonsterSearch.vue"
 import AddMonsterModal from "@/modals/AddMonsterModal.vue"
 import { getOpen5e } from '../api/open5e.js'
@@ -55,17 +55,25 @@ const searchMonsters = async (resetResults = true) => {
     const data = await getOpen5e('/creatures/', params)
 
     totalResults.value = data.count
-    monsters.value = data.results.map((monster) => ({
-      ...monster,
-      id: `api_${monster.key}`,
-      slug: monster.key,
-      label: monster.name,
-      type: typeof monster.type === 'object' ? (monster.type?.name || '') : monster.type,
-      challengeRating: parseFloat(monster.challenge_rating || 0),
-      hitPoints: monster.hit_points,
-      armorClass: monster.armor_class,
-      source: 'open5e'
-    }))
+
+    monsters.value = data.results.map((monster) => {
+      const crFloat = parseFloat(monster.challenge_rating || 0);
+
+      return {
+        ...monster,
+        id: `api_${monster.key}`,
+        slug: monster.key,
+        label: monster.name,
+        type: typeof monster.type === 'object' ? (monster.type?.name || '') : monster.type,
+
+        challengeRating: crFloat,
+        challengeRatingDisplay: formatCR(crFloat),
+
+        hitPoints: monster.hit_points,
+        armorClass: monster.armor_class,
+        source: 'open5e'
+      }
+    })
 
   } catch (error) {
     console.log('Error fetching monsters', error)
@@ -212,7 +220,7 @@ onMounted(() => {
         <li v-for="monster in displayMonsters" @click="addToCombatList(monster, $event)" :key="monster.id">
           <span class="monster-name">{{ monster.label }}</span>
           <span class="monster-type">{{ monster.type }}</span>
-          <span class="monster-cr">{{ monster.challengeRating }}</span>
+          <span class="monster-cr">{{ monster.challengeRatingDisplay }}</span>
           <span class="monster-hp">{{ monster.hitPoints }}</span>
           <span class="monster-ac">{{ monster.armorClass || '-' }}</span>
           <span class="monster-fav">

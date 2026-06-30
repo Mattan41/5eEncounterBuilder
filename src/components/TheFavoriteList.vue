@@ -89,7 +89,7 @@ const exportFavorites = () => {
               class="favorite-item">
             <span class="monster-name">{{ monster.label }}</span>
             <span class="monster-type">{{ monster.type }}</span>
-            <span class="monster-cr">{{ monster.challengeRating }}</span>
+            <span class="monster-cr">{{ monster.challengeRatingDisplay }}</span>
             <span class="monster-hp">{{ monster.hitPoints }}</span>
             <span class="monster-actions">
               <button

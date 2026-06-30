@@ -240,6 +240,7 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .monster-header {
@@ -247,6 +248,7 @@ h2 {
   justify-content: flex-start;
   gap: 1rem;
   align-items: center;
+  min-width: 0;
 }
 
 .monster-label {
@@ -255,6 +257,7 @@ h2 {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  min-width: 0;
 }
 
 .monster-hp {
@@ -267,6 +270,7 @@ h2 {
   display: flex;
   align-items: center;
   font-size: 0.8rem;
+  flex-shrink: 0;
 }
 
 .initiative-input {
@@ -323,6 +327,7 @@ h2 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .damage-input {
@@ -332,11 +337,13 @@ h2 {
   padding: 0.4rem;
   border-radius: 5px;
   flex: 1;
+  min-width: 0;
 }
 
 .apply-button {
   padding: 0.4rem;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Combat states */
