@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIconButton from '@/components/base/BaseIconButton.vue'
 import MonsterListHeader from '@/components/base/MonsterListHeader.vue'
 import MonsterRow from '@/components/base/MonsterRow.vue'
@@ -7,9 +8,11 @@ import CreatureModal from '@/modals/CreatureModal.vue'
 import { useFavorites } from '@/composables/useFavorites.js'
 import { useCombat } from '@/composables/useCombat.js'
 import { useRowFeedback } from '@/composables/useRowFeedback.js'
+import { useUiState } from '@/composables/useUiState.js'
 
 const { favoriteMonsters, removeFromFavorites } = useFavorites()
 const { addToCombat } = useCombat()
+const { openMonsterList } = useUiState()
 
 const showCreatureModal = ref(false)
 const selectedCreature = ref(null)
@@ -63,7 +66,10 @@ const closeCreatureModal = () => {
     <div v-if="favoriteMonsters.length === 0" class="empty-state">
       <div class="empty-icon">⭐</div>
       <p>No favorite monsters yet</p>
-      <small>Add some from the monster search!</small>
+      <small>Bookmark monsters from the search list with the ☆ button.</small>
+      <div class="empty-actions">
+        <BaseButton variant="primary" @click="openMonsterList">Search Monsters</BaseButton>
+      </div>
     </div>
 
     <div v-else class="favorites-content">
@@ -145,7 +151,7 @@ const closeCreatureModal = () => {
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
-  color: #ccc;
+  color: var(--text-soft);
 }
 
 .empty-icon {
@@ -157,12 +163,18 @@ const closeCreatureModal = () => {
 .empty-state p {
   font-size: 1.1rem;
   margin: 0.5rem 0;
-  color: #ddd;
+  color: var(--text-soft);
 }
 
 .empty-state small {
-  color: #999;
+  color: #999999;
   font-style: italic;
+}
+
+.empty-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
 }
 
 /* Favorites content */

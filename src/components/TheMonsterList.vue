@@ -16,13 +16,11 @@ const showAddModal = ref(false)
 
 // Search/filter/sort is owned here and provided to MonsterSearch.
 const { displayMonsters, isLoading, sortBy, sortMonsters, getSortIcon } = provideMonsterSearch()
-const { addToFavorites } = useFavorites()
+const { addToFavorites, removeFromFavorites, isInFavorites } = useFavorites()
 const { addToCombat } = useCombat()
 
-// Separate feedback channels: adding to combat highlights the row,
-// adding to favorites flashes the star.
+// Adding to combat briefly highlights the row.
 const { flash: flashRow, isFlashing: isRowFlashing } = useRowFeedback()
-const { flash: flashFavorite, isFlashing: isFavoriteFlashing } = useRowFeedback()
 
 const sortColumn = (key, label, className) => ({
   key,
@@ -50,18 +48,21 @@ const rowColumns = (monster) => [
   { key: 'ac', value: monster.armorClass || '-', className: 'col-ac' },
 ]
 
-// Clicking a row adds the monster to both favorites and the combat list.
+// Clicking a row adds the monster to the combat list. Bookmarking is a separate,
+// explicit action (the star) so clicking a row never has a hidden side effect.
 const addToCombatList = (monster) => {
-  addToFavorites(monster)
   addToCombat(monster)
   flashRow(monster.id)
 }
 
-const addToFavoritesOnly = (monster, event) => {
+// The star toggles the bookmark and always reflects the real favorite state.
+const toggleFavorite = (monster, event) => {
   event.stopPropagation()
 
-  if (addToFavorites(monster)) {
-    flashFavorite(monster.id)
+  if (isInFavorites(monster)) {
+    removeFromFavorites(monster)
+  } else {
+    addToFavorites(monster)
   }
 }
 </script>
@@ -77,7 +78,10 @@ const addToFavoritesOnly = (monster, event) => {
 
     <MonsterListHeader :columns="columns" @sort="sortMonsters" />
 
-    <p v-if="displayMonsters.length > 0">Found {{ displayMonsters.length }} monsters</p>
+    <p v-if="displayMonsters.length > 0" class="list-summary">
+      Found {{ displayMonsters.length }} monsters
+      <small class="click-hint">Click a row to add to combat &middot; ☆ to bookmark</small>
+    </p>
 
     <div class="scroll-container">
       <ul>
@@ -91,11 +95,15 @@ const addToFavoritesOnly = (monster, event) => {
           <template #actions>
             <BaseIconButton
               tone="favorite"
-              :active="isFavoriteFlashing(monster.id)"
-              :label="`Add ${monster.label} to favorites`"
-              @click="addToFavoritesOnly(monster, $event)"
+              :active="isInFavorites(monster)"
+              :label="
+                isInFavorites(monster)
+                  ? `Remove ${monster.label} from favorites`
+                  : `Add ${monster.label} to favorites`
+              "
+              @click="toggleFavorite(monster, $event)"
             >
-              {{ isFavoriteFlashing(monster.id) ? '★' : '☆' }}
+              {{ isInFavorites(monster) ? '★' : '☆' }}
             </BaseIconButton>
           </template>
         </MonsterRow>
@@ -119,6 +127,16 @@ const addToFavoritesOnly = (monster, event) => {
 
 .header h1 {
   margin: 0;
+}
+
+.list-summary {
+  margin-top: 0;
+}
+
+.click-hint {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.8rem;
 }
 
 /* Responsive design */

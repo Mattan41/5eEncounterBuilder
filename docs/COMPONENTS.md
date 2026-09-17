@@ -48,6 +48,34 @@ fallthrough, so a scoped class can still tweak a single instance.
 - Cross-cutting state lives in `src/composables/`. Visual feedback uses reactive
   state (`useRowFeedback`) instead of mutating inline styles or DOM classes.
 
+## Shared UI state
+
+`useUiState` is a module-level singleton (like `store.js`) so any component can
+read or change the app layout without prop drilling or events:
+
+| Member | Notes |
+| ------ | ----- |
+| `uiState` | Reactive panel flags (`showMonsterList`, `showFavoriteList`, `showCombatEncounter`) and `hasSeenIntro`. Persisted under the `uiState` localStorage key. |
+| `showAbout` | Transient ref for the single `AboutModal` instance, rendered by `App.vue`. Never persisted. |
+| `toggle*` / `open*` | Panel visibility, plus `openMonsterList()` which the empty states use as a call to action. |
+| `visibleCount`, `hasVisiblePanel`, `mainClass` | Derived layout: `mainClass` drives the 1/2/3-column `main` grid. |
+
+`uiState` is a **local layout preference** and is deliberately excluded from the
+exported save file, so the save format version does not change when panels are
+added or renamed.
+
+## Interaction rules
+
+- **Clicking a search row adds the monster to the combat list only.** Bookmarking
+  is always explicit, so no row click has a hidden side effect.
+- **The ☆ button toggles the bookmark** and always reflects the real state
+  (`★` = favorited) via `useFavorites().isInFavorites`.
+- Adding the same monster to combat twice is intentional (three goblins are three
+  entries); only favorites are de-duplicated.
+- First-time visitors get the dismissible `IntroBanner` once (`hasSeenIntro`);
+  the About dialog is always manual, never auto-opened.
+
+
 ## Adding a new list screen
 
 1. Wrap content in `.container` plus a `.monster-table--*` variant.

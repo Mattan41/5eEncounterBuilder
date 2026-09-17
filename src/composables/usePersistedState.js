@@ -7,6 +7,9 @@ export const STORAGE_KEYS = {
   combatMonsters: 'combatMonsters',
   favoriteMonsters: 'favoriteMonsters',
   combatSession: 'combatSession',
+  // Local layout preference (which panels are open + one-time onboarding flags).
+  // Deliberately not part of the exported save file.
+  uiState: 'uiState',
 }
 
 const hasStorage = () => typeof localStorage !== 'undefined'

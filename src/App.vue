@@ -1,59 +1,51 @@
 <script setup>
-import { computed, ref } from 'vue'
 import AppHeader from './components/AppHeader.vue'
-import TheMonsterList from './components/TheMonsterList.vue'
-import TheFavoriteList from './components/TheFavoriteList.vue'
+import IntroBanner from './components/IntroBanner.vue'
 import TheCombatList from './components/TheCombatList.vue'
+import TheFavoriteList from './components/TheFavoriteList.vue'
+import TheMonsterList from './components/TheMonsterList.vue'
+import AboutModal from './modals/AboutModal.vue'
+import { useUiState } from './composables/useUiState.js'
 
-const showMonsterList = ref(false)
-const showFavoriteList = ref(false)
-const showCombatEncounter = ref(true)
-
-const toggleMonsterList = () => {
-  showMonsterList.value = !showMonsterList.value
-}
-
-const toggleFavoriteList = () => {
-  showFavoriteList.value = !showFavoriteList.value
-}
-
-const toggleCombatEncounter = () => {
-  showCombatEncounter.value = !showCombatEncounter.value
-}
-
-const getMainClass = computed(() => {
-  const visibleCount = [
-    showCombatEncounter.value,
-    showMonsterList.value,
-    showFavoriteList.value,
-  ].filter(Boolean).length
-
-  return {
-    'single-column': visibleCount === 1,
-    'two-columns': visibleCount === 2,
-    'three-columns': visibleCount === 3,
-  }
-})
+// Panel visibility is persisted, so a refresh restores the layout the user left.
+const {
+  uiState,
+  showAbout,
+  hasVisiblePanel,
+  mainClass,
+  toggleMonsterList,
+  toggleFavoriteList,
+  toggleCombatEncounter,
+  closeAbout,
+} = useUiState()
 </script>
 
 <template>
   <div class="app">
     <header>
       <AppHeader
-        :show-monster-list="showMonsterList"
-        :show-favorite-list="showFavoriteList"
-        :show-combat-encounter="showCombatEncounter"
+        :show-monster-list="uiState.showMonsterList"
+        :show-favorite-list="uiState.showFavoriteList"
+        :show-combat-encounter="uiState.showCombatEncounter"
         @toggle-monster-list="toggleMonsterList"
         @toggle-favorite-list="toggleFavoriteList"
         @toggle-combat-encounter="toggleCombatEncounter"
       />
     </header>
 
-    <main :class="getMainClass">
-      <TheCombatList v-if="showCombatEncounter" />
-      <TheMonsterList v-if="showMonsterList" />
-      <TheFavoriteList v-if="showFavoriteList" />
+    <IntroBanner v-if="!uiState.hasSeenIntro" />
+
+    <main :class="mainClass">
+      <TheCombatList v-if="uiState.showCombatEncounter" />
+      <TheMonsterList v-if="uiState.showMonsterList" />
+      <TheFavoriteList v-if="uiState.showFavoriteList" />
+
+      <p v-if="!hasVisiblePanel" class="empty-state">
+        All panels are hidden &mdash; use the buttons in the header to open one.
+      </p>
     </main>
+
+    <AboutModal :show="showAbout" @close="closeAbout" />
   </div>
 </template>
 

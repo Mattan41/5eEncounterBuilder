@@ -16,10 +16,10 @@ const close = () => emit('close')
       <section>
         <h3>What is this?</h3>
         <p>
-          A lightweight combat and encounter tracker for Dungeons &amp; Dragons 5e. Search a library
+          A lightweight combat and encounter tracker for the TTRPG 5e system. Search a library
           of monsters, bookmark the ones you like, and run an initiative order for your table.
           Creature data comes from the
-          <a href="https://open5e.com/" target="_blank" rel="noopener noreferrer">Open5e API v2</a>
+          <a href="https://open5e.com/" target="_blank" rel="noopener noreferrer">Open5e API</a>
           and no account or backend is needed &mdash; everything you create is stored locally in
           your browser.
         </p>
@@ -35,9 +35,13 @@ const close = () => emit('close')
           </li>
           <li>Click a column heading (Name, Type, CR, HP, AC) to sort the list.</li>
           <li>
-            Click a row to add that monster to <strong>both</strong> favorites and the combat list.
+            Click a row to add that monster to the <strong>combat list</strong>. Adding the same
+            monster twice is allowed, so three goblins are three separate entries.
           </li>
-          <li>Click the ☆ button to add it to favorites only.</li>
+          <li>
+            Click the ☆ button to bookmark a monster as a <strong>favorite</strong>; the star turns
+            solid, and clicking it again removes the bookmark.
+          </li>
         </ul>
       </section>
 
@@ -92,6 +96,11 @@ const close = () => emit('close')
           <li>
             Your favorites, combat list, and the current round/turn are saved automatically in this
             browser, so an in-progress fight survives a page refresh.
+          </li>
+          <li>
+            The layout is remembered too: whichever panels you had open (Search, Favorites, Combat)
+            come back the same way after a refresh. Layout is a local preference, so it is not part
+            of an exported save file.
           </li>
           <li>
             <strong>Export State</strong> downloads a single JSON save file containing your

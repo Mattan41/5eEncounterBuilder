@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import { IMPORT_MODES, isDestructiveImportMode, useAppState } from '@/composables/useAppState.js'
-import AboutModal from '@/modals/AboutModal.vue'
+import { useUiState } from '@/composables/useUiState.js'
 
 defineProps({
   showMonsterList: {
@@ -52,8 +52,11 @@ const importModes = [
 
 const fileInput = ref(null)
 const showImportModal = ref(false)
-const showAbout = ref(false)
 const selectedMode = ref(IMPORT_MODES.MERGE_FAVORITES_ONLY)
+
+// The About dialog lives in App.vue so the header, the intro banner and the
+// panel empty states can all open the same instance.
+const { openAbout } = useUiState()
 
 const favoriteCount = computed(() => pendingState.value?.favoriteMonsters?.length || 0)
 const combatCount = computed(() => pendingState.value?.combatMonsters?.length || 0)
@@ -98,13 +101,16 @@ const cancelImport = () => {
   <div class="app-header">
     <div class="header-content">
       <div class="header-left">
-        <BaseButton variant="secondary" @click="showAbout = true">
+        <BaseButton variant="secondary" @click="openAbout">
           <span class="button-text">About</span>
           <span class="button-text-mobile">About</span>
         </BaseButton>
 
         <div class="title-section">
           <h1 class="app-title">5e Encounter Builder</h1>
+          <p class="app-tagline">
+            Search monsters &middot; bookmark favorites &middot; run initiative
+          </p>
           <p class="api-credit">
             Powered by
             <a
@@ -206,8 +212,6 @@ const cancelImport = () => {
       </div>
     </div>
   </BaseModal>
-
-  <AboutModal :show="showAbout" @close="showAbout = false" />
 </template>
 
 <style scoped>
@@ -257,7 +261,13 @@ const cancelImport = () => {
 
 .api-credit {
   font-size: 0.875rem;
-  color: #ccc;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.app-tagline {
+  font-size: 0.85rem;
+  color: var(--text-muted);
   margin: 0;
 }
 

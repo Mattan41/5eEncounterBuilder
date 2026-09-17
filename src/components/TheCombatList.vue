@@ -1,6 +1,10 @@
 <script setup>
 import BaseButton from '@/components/base/BaseButton.vue'
 import { useCombat } from '@/composables/useCombat.js'
+import { useUiState } from '@/composables/useUiState.js'
+
+// Lets the empty state guide a first-time user to the next step.
+const { openMonsterList, openAbout } = useUiState()
 
 // All initiative/round logic lives in useCombat.
 const {
@@ -102,6 +106,17 @@ const {
         </li>
       </transition-group>
     </ol>
+
+    <div v-if="combatMonsters.length === 0" class="combat-empty">
+      <p>Nothing in the encounter yet.</p>
+      <p class="combat-empty-hint">
+        Search the monster library, click a row to add it here, then roll initiative.
+      </p>
+      <div class="combat-empty-actions">
+        <BaseButton variant="primary" @click="openMonsterList">Search Monsters</BaseButton>
+        <BaseButton variant="secondary" @click="openAbout">What is this?</BaseButton>
+      </div>
+    </div>
 
     <div v-if="isRoundBlinking" class="overlay"></div>
   </div>
@@ -320,6 +335,24 @@ h2 {
   .monster-header {
     gap: 1rem;
   }
+}
+
+/* Empty state */
+.combat-empty {
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+
+.combat-empty-hint {
+  font-size: 0.9rem;
+}
+
+.combat-empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
 }
 
 /* Overlay */
