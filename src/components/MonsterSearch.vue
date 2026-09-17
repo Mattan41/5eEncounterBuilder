@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted } from 'vue'
+import BaseButton from '@/components/base/BaseButton.vue'
 import { useInjectedMonsterSearch } from '@/composables/useMonsterSearch.js'
 
 // Search state is provided by TheMonsterList; this component only renders it.
@@ -95,19 +96,16 @@ const typeOptions = [
           @keyup.enter="searchNow"
         />
         <div class="button-group">
-          <button
-            @click="searchNow"
-            :disabled="isLoading || crRangeInvalid"
-            class="btn btn-primary"
-          >
+          <BaseButton variant="primary" :disabled="isLoading || crRangeInvalid" @click="searchNow">
             {{ isLoading ? 'Searching...' : 'Search' }}
-          </button>
-          <button
+          </BaseButton>
+          <BaseButton
+            variant="secondary"
+            class="advanced-toggle"
             @click="showAdvancedSearch = !showAdvancedSearch"
-            class="btn btn-secondary advanced-toggle"
           >
             {{ showAdvancedSearch ? 'Hide' : 'Filters' }}
-          </button>
+          </BaseButton>
         </div>
       </div>
 
@@ -162,13 +160,9 @@ const typeOptions = [
 
         <!-- Filter actions -->
         <div class="filter-actions">
-          <button
-            v-if="hasActiveFilters"
-            @click="clearFilters"
-            class="btn btn-secondary clear-filters-btn"
-          >
+          <BaseButton v-if="hasActiveFilters" variant="secondary" @click="clearFilters">
             Clear Filters
-          </button>
+          </BaseButton>
         </div>
       </div>
     </div>
@@ -252,7 +246,7 @@ const typeOptions = [
 }
 
 .filter-error {
-  color: #ff6b6b;
+  color: var(--danger-soft);
   font-size: 0.85rem;
   font-weight: 500;
 }
@@ -268,7 +262,7 @@ const typeOptions = [
 }
 
 .cr-range span {
-  color: #ccc;
+  color: var(--text-soft);
   font-size: 0.9rem;
 }
 
@@ -277,34 +271,10 @@ const typeOptions = [
   justify-content: flex-end;
 }
 
-.clear-filters-btn {
-  background-color: #666;
-  font-size: 0.9rem;
-  padding: 0.5rem 1rem;
-}
-
-.clear-filters-btn:hover {
-  background-color: #777;
-}
-
-.search-results-info {
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  border-left: 4px solid #ccc;
-}
-
-.search-results-info p {
-  margin: 0.25rem 0;
-  color: #ccc;
-  font-size: 0.9rem;
-}
-
 .active-filters {
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--overlay-hover);
 }
 
 /* Responsive design */
@@ -358,11 +328,6 @@ const typeOptions = [
 
   .filter-group label {
     font-size: 0.8rem;
-  }
-
-  .clear-filters-btn {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
   }
 }
 

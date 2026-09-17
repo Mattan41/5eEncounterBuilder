@@ -1,5 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseModal from '@/components/base/BaseModal.vue'
 import { getOpen5e } from '../api/open5e.js'
 
 const props = defineProps({
@@ -196,292 +198,238 @@ const formatSpeed = (speed) => {
 </script>
 
 <template>
-  <div v-if="show" class="modal-overlay" @click="closeModal">
-    <div class="creature-modal" @click.stop>
-      <!-- Close button -->
-      <button class="close-btn" @click="closeModal">×</button>
+  <BaseModal :show="show" variant="floating" wide @close="closeModal">
+    <!-- Loading state -->
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading creature details...</p>
+    </div>
 
-      <!-- Loading state -->
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading creature details...</p>
+    <!-- Error state -->
+    <div v-else-if="error" class="error-state">
+      <h3>❌ Error Loading Creature</h3>
+      <p>{{ error }}</p>
+
+      <!-- Fallback: show basic info when we have it -->
+      <div v-if="props.creature" class="fallback-info">
+        <h4>Available Information:</h4>
+        <p><strong>Name:</strong> {{ props.creature.name || 'Unknown' }}</p>
+        <p><strong>Type:</strong> {{ props.creature.type || 'Unknown' }}</p>
+        <p>
+          <strong>Source:</strong>
+          {{ props.creature.source || props.creature.isCustom ? 'Custom' : 'API' }}
+        </p>
       </div>
 
-      <!-- Error state -->
-      <div v-else-if="error" class="error-state">
-        <h3>❌ Error Loading Creature</h3>
-        <p>{{ error }}</p>
+      <BaseButton variant="secondary" @click="closeModal">Close</BaseButton>
+    </div>
 
-        <!-- Fallback: visa basic info om vi har den -->
-        <div v-if="props.creature" class="fallback-info">
-          <h4>Available Information:</h4>
-          <p><strong>Name:</strong> {{ props.creature.name || 'Unknown' }}</p>
-          <p><strong>Type:</strong> {{ props.creature.type || 'Unknown' }}</p>
-          <p>
-            <strong>Source:</strong>
-            {{ props.creature.source || props.creature.isCustom ? 'Custom' : 'API' }}
-          </p>
-        </div>
-
-        <button @click="closeModal" class="error-btn">Close</button>
+    <!-- Success state -->
+    <div v-else-if="creatureDetails" class="creature-content">
+      <div class="creature-header">
+        <h2>
+          {{ creatureDetails.name }}
+          <span
+            v-if="creatureDetails.isCustom || creatureDetails.source === 'custom'"
+            class="custom-badge"
+            >Custom</span
+          >
+          <span v-else-if="creatureDetails.source === 'open5e'" class="api-badge">{{
+            creatureDetails.source
+          }}</span>
+          <span v-if="creatureDetails.source === 'open5e'" class="source-badge">{{
+            creatureDetails.document__title
+          }}</span>
+        </h2>
+        <p class="creature-subtitle">
+          {{ creatureDetails.size }} {{ creatureDetails.type }}
+          <span v-if="creatureDetails.subtype">({{ creatureDetails.subtype }})</span>,
+          {{ creatureDetails.alignment }}
+        </p>
       </div>
 
-      <!-- Success state -->
-      <div v-else-if="creatureDetails" class="creature-content">
-        <div class="creature-header">
-          <h2>
-            {{ creatureDetails.name }}
-            <span
-              v-if="creatureDetails.isCustom || creatureDetails.source === 'custom'"
-              class="custom-badge"
-              >Custom</span
-            >
-            <span v-else-if="creatureDetails.source === 'open5e'" class="api-badge">{{
-              creatureDetails.source
-            }}</span>
-            <span v-if="creatureDetails.source === 'open5e'" class="source-badge">{{
-              creatureDetails.document__title
-            }}</span>
-          </h2>
-          <p class="creature-subtitle">
-            {{ creatureDetails.size }} {{ creatureDetails.type }}
-            <span v-if="creatureDetails.subtype">({{ creatureDetails.subtype }})</span>,
-            {{ creatureDetails.alignment }}
-          </p>
+      <!-- Basic stats -->
+      <div class="basic-stats">
+        <div class="stat-block">
+          <strong>Armor Class</strong> {{ creatureDetails.armor_class }}
+          <span v-if="creatureDetails.armor_desc">({{ creatureDetails.armor_desc }})</span>
         </div>
-
-        <!-- Basic stats -->
-        <div class="basic-stats">
-          <div class="stat-block">
-            <strong>Armor Class</strong> {{ creatureDetails.armor_class }}
-            <span v-if="creatureDetails.armor_desc">({{ creatureDetails.armor_desc }})</span>
-          </div>
-          <div class="stat-block">
-            <strong>Hit Points</strong> {{ creatureDetails.hit_points }}
-            <span v-if="creatureDetails.hit_dice">({{ creatureDetails.hit_dice }})</span>
-          </div>
-          <div class="stat-block">
-            <strong>Speed</strong> {{ formatSpeed(creatureDetails.speed) }}
-          </div>
-          <div class="stat-block">
-            <strong>Challenge Rating</strong> {{ creatureDetails.challengeRatingDisplay }}
-          </div>
+        <div class="stat-block">
+          <strong>Hit Points</strong> {{ creatureDetails.hit_points }}
+          <span v-if="creatureDetails.hit_dice">({{ creatureDetails.hit_dice }})</span>
         </div>
+        <div class="stat-block">
+          <strong>Speed</strong> {{ formatSpeed(creatureDetails.speed) }}
+        </div>
+        <div class="stat-block">
+          <strong>Challenge Rating</strong> {{ creatureDetails.challengeRatingDisplay }}
+        </div>
+      </div>
 
-        <!-- Abilities -->
-        <div class="abilities-stats">
-          <h3>Ability Scores</h3>
-          <div class="abilities-grid">
-            <div class="ability">
-              <div class="ability-name">STR</div>
-              <div class="ability-score">{{ creatureDetails.strength }}</div>
-              <div class="ability-modifier">{{ getAbilityModifier(creatureDetails.strength) }}</div>
-            </div>
-            <div class="ability">
-              <div class="ability-name">DEX</div>
-              <div class="ability-score">{{ creatureDetails.dexterity }}</div>
-              <div class="ability-modifier">
-                {{ getAbilityModifier(creatureDetails.dexterity) }}
-              </div>
-            </div>
-            <div class="ability">
-              <div class="ability-name">CON</div>
-              <div class="ability-score">{{ creatureDetails.constitution }}</div>
-              <div class="ability-modifier">
-                {{ getAbilityModifier(creatureDetails.constitution) }}
-              </div>
-            </div>
-            <div class="ability">
-              <div class="ability-name">INT</div>
-              <div class="ability-score">{{ creatureDetails.intelligence }}</div>
-              <div class="ability-modifier">
-                {{ getAbilityModifier(creatureDetails.intelligence) }}
-              </div>
-            </div>
-            <div class="ability">
-              <div class="ability-name">WIS</div>
-              <div class="ability-score">{{ creatureDetails.wisdom }}</div>
-              <div class="ability-modifier">{{ getAbilityModifier(creatureDetails.wisdom) }}</div>
-            </div>
-            <div class="ability">
-              <div class="ability-name">CHA</div>
-              <div class="ability-score">{{ creatureDetails.charisma }}</div>
-              <div class="ability-modifier">{{ getAbilityModifier(creatureDetails.charisma) }}</div>
+      <!-- Abilities -->
+      <div class="abilities-stats">
+        <h3>Ability Scores</h3>
+        <div class="abilities-grid">
+          <div class="ability">
+            <div class="ability-name">STR</div>
+            <div class="ability-score">{{ creatureDetails.strength }}</div>
+            <div class="ability-modifier">{{ getAbilityModifier(creatureDetails.strength) }}</div>
+          </div>
+          <div class="ability">
+            <div class="ability-name">DEX</div>
+            <div class="ability-score">{{ creatureDetails.dexterity }}</div>
+            <div class="ability-modifier">
+              {{ getAbilityModifier(creatureDetails.dexterity) }}
             </div>
           </div>
-        </div>
-
-        <!-- Additional Stats (if available) -->
-        <div
-          v-if="
-            creatureDetails.saving_throws ||
-            creatureDetails.skills ||
-            creatureDetails.damage_resistances
-          "
-          class="additional-stats"
-        >
-          <div v-if="creatureDetails.saving_throws" class="stat-block">
-            <strong>Saving Throws</strong> {{ creatureDetails.saving_throws }}
+          <div class="ability">
+            <div class="ability-name">CON</div>
+            <div class="ability-score">{{ creatureDetails.constitution }}</div>
+            <div class="ability-modifier">
+              {{ getAbilityModifier(creatureDetails.constitution) }}
+            </div>
           </div>
-          <div v-if="creatureDetails.skills" class="stat-block">
-            <strong>Skills</strong>
-            {{
-              typeof creatureDetails.skills === 'object'
-                ? Object.entries(creatureDetails.skills)
-                    .map(([k, v]) => `${k} +${v}`)
-                    .join(', ')
-                : creatureDetails.skills
-            }}
+          <div class="ability">
+            <div class="ability-name">INT</div>
+            <div class="ability-score">{{ creatureDetails.intelligence }}</div>
+            <div class="ability-modifier">
+              {{ getAbilityModifier(creatureDetails.intelligence) }}
+            </div>
           </div>
-          <div v-if="creatureDetails.damage_resistances" class="stat-block">
-            <strong>Damage Resistances</strong> {{ creatureDetails.damage_resistances }}
+          <div class="ability">
+            <div class="ability-name">WIS</div>
+            <div class="ability-score">{{ creatureDetails.wisdom }}</div>
+            <div class="ability-modifier">{{ getAbilityModifier(creatureDetails.wisdom) }}</div>
           </div>
-          <div v-if="creatureDetails.damage_immunities" class="stat-block">
-            <strong>Damage Immunities</strong> {{ creatureDetails.damage_immunities }}
-          </div>
-          <div v-if="creatureDetails.condition_immunities" class="stat-block">
-            <strong>Condition Immunities</strong> {{ creatureDetails.condition_immunities }}
-          </div>
-          <div v-if="creatureDetails.senses" class="stat-block">
-            <strong>Senses</strong> {{ creatureDetails.senses }}
-          </div>
-          <div v-if="creatureDetails.languages" class="stat-block">
-            <strong>Languages</strong> {{ creatureDetails.languages }}
-          </div>
-        </div>
-
-        <!-- Description -->
-        <div v-if="creatureDetails.desc" class="description-section">
-          <h3>Description</h3>
-          <div class="description" v-html="creatureDetails.desc"></div>
-        </div>
-
-        <!-- Special Abilities -->
-        <div
-          v-if="creatureDetails.special_abilities && creatureDetails.special_abilities.length"
-          class="special-abilities-section"
-        >
-          <h3>Special Abilities</h3>
-          <div
-            v-for="ability in creatureDetails.special_abilities"
-            :key="ability.name"
-            class="ability-block"
-          >
-            <h4>{{ ability.name }}</h4>
-            <p v-html="ability.desc"></p>
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <div
-          v-if="creatureDetails.actions && creatureDetails.actions.length"
-          class="actions-section"
-        >
-          <h3>Actions</h3>
-          <div v-for="action in creatureDetails.actions" :key="action.name" class="action-block">
-            <h4>{{ action.name }}</h4>
-            <p v-html="action.desc"></p>
-          </div>
-        </div>
-
-        <!-- Legendary Actions -->
-        <div
-          v-if="creatureDetails.legendary_actions && creatureDetails.legendary_actions.length"
-          class="legendary-actions-section"
-        >
-          <h3>Legendary Actions</h3>
-          <div
-            v-for="action in creatureDetails.legendary_actions"
-            :key="action.name"
-            class="action-block"
-          >
-            <h4>{{ action.name }}</h4>
-            <p v-html="action.desc"></p>
-          </div>
-        </div>
-
-        <!-- Reactions -->
-        <div
-          v-if="creatureDetails.reactions && creatureDetails.reactions.length"
-          class="reactions-section"
-        >
-          <h3>Reactions</h3>
-          <div
-            v-for="reaction in creatureDetails.reactions"
-            :key="reaction.name"
-            class="action-block"
-          >
-            <h4>{{ reaction.name }}</h4>
-            <p v-html="reaction.desc"></p>
+          <div class="ability">
+            <div class="ability-name">CHA</div>
+            <div class="ability-score">{{ creatureDetails.charisma }}</div>
+            <div class="ability-modifier">{{ getAbilityModifier(creatureDetails.charisma) }}</div>
           </div>
         </div>
       </div>
 
-      <!-- No data state -->
-      <div v-else class="no-data-state">
-        <p>No creature data available</p>
-        <button @click="closeModal" class="close-button">Close</button>
+      <!-- Additional Stats (if available) -->
+      <div
+        v-if="
+          creatureDetails.saving_throws ||
+          creatureDetails.skills ||
+          creatureDetails.damage_resistances
+        "
+        class="additional-stats"
+      >
+        <div v-if="creatureDetails.saving_throws" class="stat-block">
+          <strong>Saving Throws</strong> {{ creatureDetails.saving_throws }}
+        </div>
+        <div v-if="creatureDetails.skills" class="stat-block">
+          <strong>Skills</strong>
+          {{
+            typeof creatureDetails.skills === 'object'
+              ? Object.entries(creatureDetails.skills)
+                  .map(([k, v]) => `${k} +${v}`)
+                  .join(', ')
+              : creatureDetails.skills
+          }}
+        </div>
+        <div v-if="creatureDetails.damage_resistances" class="stat-block">
+          <strong>Damage Resistances</strong> {{ creatureDetails.damage_resistances }}
+        </div>
+        <div v-if="creatureDetails.damage_immunities" class="stat-block">
+          <strong>Damage Immunities</strong> {{ creatureDetails.damage_immunities }}
+        </div>
+        <div v-if="creatureDetails.condition_immunities" class="stat-block">
+          <strong>Condition Immunities</strong> {{ creatureDetails.condition_immunities }}
+        </div>
+        <div v-if="creatureDetails.senses" class="stat-block">
+          <strong>Senses</strong> {{ creatureDetails.senses }}
+        </div>
+        <div v-if="creatureDetails.languages" class="stat-block">
+          <strong>Languages</strong> {{ creatureDetails.languages }}
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div v-if="creatureDetails.desc" class="description-section">
+        <h3>Description</h3>
+        <div class="description" v-html="creatureDetails.desc"></div>
+      </div>
+
+      <!-- Special Abilities -->
+      <div
+        v-if="creatureDetails.special_abilities && creatureDetails.special_abilities.length"
+        class="special-abilities-section"
+      >
+        <h3>Special Abilities</h3>
+        <div
+          v-for="ability in creatureDetails.special_abilities"
+          :key="ability.name"
+          class="ability-block"
+        >
+          <h4>{{ ability.name }}</h4>
+          <p v-html="ability.desc"></p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div v-if="creatureDetails.actions && creatureDetails.actions.length" class="actions-section">
+        <h3>Actions</h3>
+        <div v-for="action in creatureDetails.actions" :key="action.name" class="action-block">
+          <h4>{{ action.name }}</h4>
+          <p v-html="action.desc"></p>
+        </div>
+      </div>
+
+      <!-- Legendary Actions -->
+      <div
+        v-if="creatureDetails.legendary_actions && creatureDetails.legendary_actions.length"
+        class="legendary-actions-section"
+      >
+        <h3>Legendary Actions</h3>
+        <div
+          v-for="action in creatureDetails.legendary_actions"
+          :key="action.name"
+          class="action-block"
+        >
+          <h4>{{ action.name }}</h4>
+          <p v-html="action.desc"></p>
+        </div>
+      </div>
+
+      <!-- Reactions -->
+      <div
+        v-if="creatureDetails.reactions && creatureDetails.reactions.length"
+        class="reactions-section"
+      >
+        <h3>Reactions</h3>
+        <div
+          v-for="reaction in creatureDetails.reactions"
+          :key="reaction.name"
+          class="action-block"
+        >
+          <h4>{{ reaction.name }}</h4>
+          <p v-html="reaction.desc"></p>
+        </div>
       </div>
     </div>
-  </div>
+
+    <!-- No data state -->
+    <div v-else class="no-data-state">
+      <p>No creature data available</p>
+      <BaseButton variant="secondary" @click="closeModal">Close</BaseButton>
+    </div>
+  </BaseModal>
 </template>
 
 <style scoped>
-/* Modal overlay */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-/* Modal content */
-.creature-modal {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d30 100%);
-  border-radius: 12px;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
+/* The modal shell (backdrop, header, close button) is shared via BaseModal
+   and components.css - only creature-specific content is styled here. */
 .creature-content {
   padding: 2rem;
 }
 
-/* Close button */
-.close-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  transition: background-color 0.2s;
-}
-
-.close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
 /* Header */
 .creature-header h2 {
-  color: #fff;
+  color: var(--text-strong);
   margin: 0 0 0.5rem 0;
   font-size: 2rem;
   display: flex;
@@ -490,7 +438,7 @@ const formatSpeed = (speed) => {
 }
 
 .creature-subtitle {
-  color: #ccc;
+  color: var(--text-soft);
   margin: 0;
   font-style: italic;
 }
@@ -538,7 +486,7 @@ const formatSpeed = (speed) => {
 }
 
 .stat-block strong {
-  color: #ffd700;
+  color: var(--gold);
   margin-right: 0.5rem;
 }
 
@@ -548,7 +496,7 @@ const formatSpeed = (speed) => {
 }
 
 .abilities-stats h3 {
-  color: #ffd700;
+  color: var(--gold);
   margin: 0 0 1rem 0;
 }
 
@@ -570,7 +518,7 @@ const formatSpeed = (speed) => {
 
 .ability-name {
   font-weight: bold;
-  color: #ffd700;
+  color: var(--gold);
   font-size: 0.9rem;
   margin-bottom: 0.3rem;
 }
@@ -602,10 +550,10 @@ const formatSpeed = (speed) => {
 .actions-section h3,
 .legendary-actions-section h3,
 .reactions-section h3 {
-  color: #ffd700;
+  color: var(--gold);
   margin: 0 0 1rem 0;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #ffd700;
+  border-bottom: 2px solid var(--gold);
 }
 
 .description {
@@ -619,7 +567,7 @@ const formatSpeed = (speed) => {
   padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  border-left: 4px solid #ffd700;
+  border-left: 4px solid var(--gold);
 }
 
 .ability-block h4,
@@ -646,7 +594,7 @@ const formatSpeed = (speed) => {
 .spinner {
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  border-top: 3px solid #ffd700;
+  border-top: 3px solid var(--gold);
   width: 40px;
   height: 40px;
   animation: spin 1s linear infinite;
@@ -670,7 +618,7 @@ const formatSpeed = (speed) => {
 }
 
 .error-state h3 {
-  color: #ff6b6b;
+  color: var(--danger-soft);
   margin: 0 0 1rem 0;
 }
 
@@ -682,23 +630,6 @@ const formatSpeed = (speed) => {
   text-align: left;
 }
 
-.error-btn,
-.close-button {
-  background: #ff4444;
-  color: white;
-  border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-top: 1rem;
-  transition: background-color 0.2s;
-}
-
-.error-btn:hover,
-.close-button:hover {
-  background: #ff6666;
-}
-
 /* No data state */
 .no-data-state {
   padding: 2rem;
@@ -708,11 +639,6 @@ const formatSpeed = (speed) => {
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .creature-modal {
-    margin: 1rem;
-    max-height: 95vh;
-  }
-
   .creature-content {
     padding: 1rem;
   }
