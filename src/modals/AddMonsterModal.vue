@@ -1,39 +1,43 @@
 <script setup>
 import { ref } from 'vue'
-import { addToFavorites, store, saveCombatMonsters } from '../store.js'
+import { useFavorites } from '@/composables/useFavorites.js'
+import { useCombat } from '@/composables/useCombat.js'
+import { formatCR } from '@/utils/formatCR.js'
 
-const props = defineProps({
-  isOpen: { type: Boolean, default: false }
+const { addToFavorites } = useFavorites()
+const { addToCombat } = useCombat()
+
+defineProps({
+  isOpen: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['close'])
 
-// Utökad form data för custom monsters
-const newMonster = ref("")
+// Form data for custom monsters
+const newMonster = ref('')
 const newMonsterHP = ref(0)
-const newMonsterCR = ref("0")
+const newMonsterCR = ref('0')
 const newMonsterInCombat = ref(false)
 
-// Nya fält för bättre custom monsters
-const newMonsterType = ref("Humanoid")
-const newMonsterSize = ref("Medium")
+// Additional fields for richer custom monsters
+const newMonsterType = ref('Humanoid')
+const newMonsterSize = ref('Medium')
 const newMonsterAC = ref(10)
-const newMonsterAlignment = ref("Neutral")
-const newMonsterDescription = ref("")
-const newMonsterSpecialAbilities = ref("")
+const newMonsterAlignment = ref('Neutral')
+const newMonsterDescription = ref('')
 
-const specialAbilities = ref([""]); // Skapa en reaktiv array för specialförmågor
+const specialAbilities = ref(['']) // Reactive array for special abilities
 
 const addAbility = () => {
-  specialAbilities.value.push(""); // Lägger till en tom string för en ny förmåga
+  specialAbilities.value.push('') // Add an empty entry for a new ability
 }
 
 const removeAbility = (index) => {
-  specialAbilities.value.splice(index, 1); // Tar bort förmågan vid det angivna indexet
+  specialAbilities.value.splice(index, 1) // Remove the ability at the given index
 }
 
 const updateAbility = (index, value) => {
-  specialAbilities.value[index] = value; // Uppdaterar den specifika specialförmågan
+  specialAbilities.value[index] = value // Update the specific special ability
 }
 // Ability scores
 const abilities = ref({
@@ -42,21 +46,21 @@ const abilities = ref({
   constitution: 10,
   intelligence: 10,
   wisdom: 10,
-  charisma: 10
+  charisma: 10,
 })
 
 const clearForm = () => {
-  newMonster.value = ""
+  newMonster.value = ''
   newMonsterHP.value = 1
-  newMonsterCR.value = "0"
+  newMonsterCR.value = '0'
   newMonsterInCombat.value = false
 
-  // Rensa nya fält
-  newMonsterType.value = "Humanoid"
-  newMonsterSize.value = "Medium"
+  // Reset additional fields
+  newMonsterType.value = 'Humanoid'
+  newMonsterSize.value = 'Medium'
   newMonsterAC.value = 10
-  newMonsterAlignment.value = "Neutral"
-  newMonsterDescription.value = ""
+  newMonsterAlignment.value = 'Neutral'
+  newMonsterDescription.value = ''
 
   // Reset abilities
   abilities.value = {
@@ -65,11 +69,12 @@ const clearForm = () => {
     constitution: 10,
     intelligence: 10,
     wisdom: 10,
-    charisma: 10
+    charisma: 10,
   }
 }
 
-const saveMonster = async () => {
+const saveMonster = () => {
+  const challengeRating = parseFloat(newMonsterCR.value)
   const customMonster = {
     name: newMonster.value,
     type: newMonsterType.value,
@@ -77,45 +82,39 @@ const saveMonster = async () => {
     alignment: newMonsterAlignment.value,
     armor_class: newMonsterAC.value,
     hit_points: newMonsterHP.value,
-    challenge_rating: parseFloat(newMonsterCR.value),
+    challenge_rating: challengeRating,
     strength: abilities.value.strength,
     dexterity: abilities.value.dexterity,
     constitution: abilities.value.constitution,
     intelligence: abilities.value.intelligence,
     wisdom: abilities.value.wisdom,
     charisma: abilities.value.charisma,
-    desc: newMonsterDescription.value || `A custom ${newMonsterSize.value.toLowerCase()} ${newMonsterType.value.toLowerCase()}.`,
+    desc:
+      newMonsterDescription.value ||
+      `A custom ${newMonsterSize.value.toLowerCase()} ${newMonsterType.value.toLowerCase()}.`,
     actions: [],
-    special_abilities: specialAbilities.value.map(ability => ability.trim()).filter(Boolean),
+    special_abilities: specialAbilities.value.map((ability) => ability.trim()).filter(Boolean),
     isCustom: true,
     source: 'custom',
-    id: `custom_${Date.now()}`,
     label: newMonster.value,
-    challengeRating: parseFloat(newMonsterCR.value),
+    challengeRating,
+    challengeRatingDisplay: formatCR(challengeRating),
     hitPoints: newMonsterHP.value,
     originalHitPoints: newMonsterHP.value,
     armorClass: newMonsterAC.value,
-    document: 'Custom'
-  };
-
-  console.log('🎨 Creating custom monster:', customMonster);
-
-  // Lägg till i favorit
-  await addToFavorites(customMonster);
-
-  // Lägg till i combat om valt
-  if (newMonsterInCombat.value) {
-    store.combatMonsters.push({
-      ...customMonster,
-      combatId: Date.now(),
-      initiative: 0,
-      done: false
-    });
-    saveCombatMonsters();
+    document: 'Custom',
   }
 
-  clearForm();
-  closeModal();
+  // Add to favorites
+  addToFavorites(customMonster)
+
+  // Add to combat if selected
+  if (newMonsterInCombat.value) {
+    addToCombat(customMonster)
+  }
+
+  clearForm()
+  closeModal()
 }
 
 const closeModal = () => {
@@ -129,7 +128,7 @@ const handleBackdropClick = (event) => {
   }
 }
 
-// Hjälpfunktion för ability modifier
+// Helper function for ability modifier
 const getAbilityModifier = (score) => {
   const modifier = Math.floor((score - 10) / 2)
   return modifier >= 0 ? `+${modifier}` : `${modifier}`
@@ -153,12 +152,12 @@ const getAbilityModifier = (score) => {
             <div class="form-group">
               <label for="monster-name">Monster Name</label>
               <input
-                  id="monster-name"
-                  v-model.trim="newMonster"
-                  type="text"
-                  placeholder="Enter monster name"
-                  required
-              >
+                id="monster-name"
+                v-model.trim="newMonster"
+                type="text"
+                placeholder="Enter monster name"
+                required
+              />
             </div>
           </div>
 
@@ -221,27 +220,27 @@ const getAbilityModifier = (score) => {
             <div class="form-group">
               <label for="monster-hp">Hit Points</label>
               <input
-                  id="monster-hp"
-                  v-model.number="newMonsterHP"
-                  type="number"
-                  placeholder="Enter hit points"
-                  min="1"
-                  max="1000"
-                  required
-              >
+                id="monster-hp"
+                v-model.number="newMonsterHP"
+                type="number"
+                placeholder="Enter hit points"
+                min="1"
+                max="1000"
+                required
+              />
             </div>
 
             <div class="form-group">
               <label for="monster-ac">Armor Class</label>
               <input
-                  id="monster-ac"
-                  v-model.number="newMonsterAC"
-                  type="number"
-                  placeholder="Enter AC"
-                  min="1"
-                  max="30"
-                  required
-              >
+                id="monster-ac"
+                v-model.number="newMonsterAC"
+                type="number"
+                placeholder="Enter AC"
+                min="1"
+                max="30"
+                required
+              />
             </div>
 
             <div class="form-group">
@@ -266,13 +265,13 @@ const getAbilityModifier = (score) => {
                 {{ ability.charAt(0).toUpperCase() + ability.slice(1) }}
               </label>
               <input
-                  :id="`ability-${ability}`"
-                  v-model.number="abilities[ability]"
-                  type="number"
-                  min="1"
-                  max="30"
-                  required
-              >
+                :id="`ability-${ability}`"
+                v-model.number="abilities[ability]"
+                type="number"
+                min="1"
+                max="30"
+                required
+              />
               <small class="ability-modifier">
                 {{ getAbilityModifier(abilities[ability]) }}
               </small>
@@ -281,29 +280,31 @@ const getAbilityModifier = (score) => {
         </div>
 
         <!-- special_abilities -->
-<!--        <div class="form-section">-->
-<!--          <h3>Special Abilities (Optional)</h3>-->
-<!--          <div class="form-group">-->
-<!--            <label for="monster-special-abilities">Special Abilities</label>-->
-<!--            <textarea-->
-<!--                id="monster-special-abilities"-->
-<!--                v-model="newMonsterSpecialAbilities"-->
-<!--                placeholder="List special abilities, one per line..."-->
-<!--                rows="4"-->
-<!--            ></textarea>-->
-<!--          </div>-->
-<!--        </div>-->
+        <!--        <div class="form-section">-->
+        <!--          <h3>Special Abilities (Optional)</h3>-->
+        <!--          <div class="form-group">-->
+        <!--            <label for="monster-special-abilities">Special Abilities</label>-->
+        <!--            <textarea-->
+        <!--                id="monster-special-abilities"-->
+        <!--                v-model="newMonsterSpecialAbilities"-->
+        <!--                placeholder="List special abilities, one per line..."-->
+        <!--                rows="4"-->
+        <!--            ></textarea>-->
+        <!--          </div>-->
+        <!--        </div>-->
 
-          <div class="form-section">
-            <h3>Special Abilities</h3>
-            <div v-for="(ability, index) in specialAbilities" :key="index" class="ability-input">
-              <input :value="ability" @input="updateAbility(index, $event.target.value)" placeholder="Ability Name" />
-              <button type="button" @click="removeAbility(index)">Remove</button>
-            </div>
-            <button type="button" @click="addAbility">Add Special Ability</button>
+        <div class="form-section">
+          <h3>Special Abilities</h3>
+          <div v-for="(ability, index) in specialAbilities" :key="index" class="ability-input">
+            <input
+              :value="ability"
+              @input="updateAbility(index, $event.target.value)"
+              placeholder="Ability Name"
+            />
+            <button type="button" @click="removeAbility(index)">Remove</button>
           </div>
-
-
+          <button type="button" @click="addAbility">Add Special Ability</button>
+        </div>
 
         <!-- Description -->
         <div class="form-section">
@@ -311,10 +312,10 @@ const getAbilityModifier = (score) => {
           <div class="form-group">
             <label for="monster-description">Description</label>
             <textarea
-                id="monster-description"
-                v-model="newMonsterDescription"
-                placeholder="Describe your custom monster..."
-                rows="4"
+              id="monster-description"
+              v-model="newMonsterDescription"
+              placeholder="Describe your custom monster..."
+              rows="4"
             ></textarea>
           </div>
         </div>
@@ -323,7 +324,7 @@ const getAbilityModifier = (score) => {
         <div class="form-section">
           <div class="form-group checkbox-group">
             <label class="checkbox-label">
-              <input v-model="newMonsterInCombat" type="checkbox">
+              <input v-model="newMonsterInCombat" type="checkbox" />
               <span class="checkmark"></span>
               Add to Combat immediately
             </label>
@@ -332,13 +333,11 @@ const getAbilityModifier = (score) => {
 
         <!-- Actions -->
         <div class="form-actions">
-          <button type="button" @click="closeModal" class="btn btn-secondary">
-            Cancel
-          </button>
+          <button type="button" @click="closeModal" class="btn btn-secondary">Cancel</button>
           <button
-              type="submit"
-              :disabled="!newMonster || newMonsterHP <= 0"
-              class="btn btn-primary"
+            type="submit"
+            :disabled="!newMonster || newMonsterHP <= 0"
+            class="btn btn-primary"
           >
             Save Monster
           </button>
@@ -519,7 +518,7 @@ const getAbilityModifier = (score) => {
   font-size: 0.9rem;
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-label input[type='checkbox'] {
   width: auto;
   margin: 0;
 }

@@ -1,120 +1,32 @@
 <script setup>
-import {onMounted, ref} from 'vue'
-import {addToFavorites, saveCombatMonsters, store} from '../store.js'
-import MonsterSearch from "@/components/MonsterSearch.vue"
-import AddMonsterModal from "@/modals/AddMonsterModal.vue"
+import { ref } from 'vue'
+import MonsterSearch from '@/components/MonsterSearch.vue'
+import AddMonsterModal from '@/modals/AddMonsterModal.vue'
+import { useFavorites } from '@/composables/useFavorites.js'
+import { useCombat } from '@/composables/useCombat.js'
+import { provideMonsterSearch } from '@/composables/useMonsterSearch.js'
 
-const monsters = ref([])
 const header = ref('Monster List')
 const showAddModal = ref(false)
 
-// Search & filter states
-const searchQuery = ref('')
-const showAdvancedSearch = ref(false)
-const selectedCR = ref('')
-const selectedCRMax = ref('')
-const selectedType = ref('')
-const selectedDocument = ref('')
+// Search/filter/sort is owned here and provided to MonsterSearch.
+const { displayMonsters, isLoading, sortMonsters, getSortIcon, getSortClass } =
+  provideMonsterSearch()
+const { addToFavorites } = useFavorites()
+const { addToCombat } = useCombat()
 
-// Sorting states
-const sortBy = ref('name')
-const sortOrder = ref('asc')
-
-// Loading state
-const isLoading = ref(false)
-const totalResults = ref(0)
-
-const searchMonsters = async (resetResults = true) => {
-  if (isLoading.value) return
-
-  try {
-    isLoading.value = true
-
-    if (resetResults) {
-      monsters.value = []
-    }
-
-    // Bygg query string
-    let queryParams = new URLSearchParams({
-      limit: 1000, // Justera antal hämtade monster
-    })
-
-    // Lägg till sökfråga och filter
-    if (searchQuery.value) {
-      queryParams.append('name__icontains', searchQuery.value);
-    }
-    if (selectedCR.value) {
-      queryParams.append('challenge_rating__gte', selectedCR.value)
-    }
-    if (selectedCRMax.value) {
-      queryParams.append('challenge_rating__lte', selectedCRMax.value)
-    }
-    if (selectedType.value) {
-      queryParams.append('type', selectedType.value)
-    }
-    if (selectedDocument.value) {
-      queryParams.append('document__slug', selectedDocument.value)
-    }
-
-    const response = await fetch(`https://api.open5e.com/monsters/?${queryParams}`)
-    const data = await response.json()
-
-    totalResults.value = data.count; // Spara totalantalet
-    monsters.value = data.results.map((monster) => ({
-      ...monster,
-      id: `api_${monster.slug}`,
-      label: monster.name,
-      challengeRating: parseFloat(monster.challenge_rating || 0),
-      hitPoints: monster.hit_points,
-      armorClass: monster.armor_class,
-      source: 'open5e'
-    }));
-
-  } catch (error) {
-    console.log('Error fetching monsters', error)
-  } finally {
-    isLoading.value = false
-  }
-}
-// Sortering
-const sortMonsters = (field) => {
-  if (sortBy.value === field) {
-    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
-  } else {
-    sortBy.value = field
-    sortOrder.value = 'asc'
-  }
-  searchMonsters(true)
-}
-
-const getSortIcon = (field) => {
-  if (sortBy.value !== field) return '↕️'
-  return sortOrder.value === 'asc' ? '↑' : '↓'
-}
-
-const getSortClass = (field) => {
-  return sortBy.value === field ? 'sorted' : ''
-}
-
-// Monster actions
 const addToCombatList = (monster, event) => {
   event.preventDefault()
-  if (event.type === 'click') {
-    const addedToFavorites = addToFavorites(monster)
+  if (event.type !== 'click') return
 
-    store.combatMonsters.push({ ...monster, combatId: Date.now(), initiative: 0, done: false })
-    saveCombatMonsters()
+  addToFavorites(monster)
+  addToCombat(monster)
 
-    const listItem = event.currentTarget
-    listItem.classList.add('blink')
-    setTimeout(() => {
-      listItem.classList.remove('blink')
-    }, 1000)
-
-    if (addedToFavorites) {
-      console.log(`${monster.label} added to favorites and combat!`)
-    }
-  }
+  const listItem = event.currentTarget
+  listItem.classList.add('blink')
+  setTimeout(() => {
+    listItem.classList.remove('blink')
+  }, 1000)
 }
 
 const addToFavoritesOnly = (monster, event) => {
@@ -132,33 +44,16 @@ const addToFavoritesOnly = (monster, event) => {
     }, 1000)
   }
 }
-
-// Lifecycle hooks
-onMounted(() => {
-})
-
 </script>
-
 
 <template>
   <div class="monster-container container">
     <div class="header">
       <h1>{{ header }}</h1>
-      <button @click="showAddModal = true" class="btn btn-primary">
-        + Add Monster
-      </button>
+      <button @click="showAddModal = true" class="btn btn-primary">+ Add Monster</button>
     </div>
 
-    <MonsterSearch
-        v-model:search-query="searchQuery"
-        v-model:selected-c-r="selectedCR"
-        v-model:selected-c-r-max="selectedCRMax"
-        v-model:selected-type="selectedType"
-        v-model:selected-document="selectedDocument"
-        v-model:show-advanced-search="showAdvancedSearch"
-        :is-loading="isLoading"
-        @search="searchMonsters(true)"
-    />
+    <MonsterSearch />
 
     <div class="monster-list-header">
       <span @click="sortMonsters('name')" :class="getSortClass('name')" class="sortable">
@@ -167,33 +62,46 @@ onMounted(() => {
       <span @click="sortMonsters('type')" :class="getSortClass('type')" class="sortable">
         Type {{ getSortIcon('type') }}
       </span>
-      <span @click="sortMonsters('challenge_rating')" :class="getSortClass('challenge_rating')" class="sortable">
-        CR {{ getSortIcon('challenge_rating') }}
+      <span
+        @click="sortMonsters('challengeRating')"
+        :class="getSortClass('challengeRating')"
+        class="sortable"
+      >
+        CR {{ getSortIcon('challengeRating') }}
       </span>
-      <span @click="sortMonsters('hit_points')" :class="getSortClass('hit_points')" class="sortable">
-        HP {{ getSortIcon('hit_points') }}
+      <span @click="sortMonsters('hitPoints')" :class="getSortClass('hitPoints')" class="sortable">
+        HP {{ getSortIcon('hitPoints') }}
       </span>
-      <span @click="sortMonsters('armor_class')" :class="getSortClass('armor_class')" class="sortable">
-        AC {{ getSortIcon('armor_class') }}
+      <span
+        @click="sortMonsters('armorClass')"
+        :class="getSortClass('armorClass')"
+        class="sortable"
+      >
+        AC {{ getSortIcon('armorClass') }}
       </span>
       <span>Fav</span>
     </div>
 
-    <p v-if="totalResults > 0">Found {{ totalResults }} monsters</p>
+    <p v-if="displayMonsters.length > 0">Found {{ displayMonsters.length }} monsters</p>
 
     <div class="monsters-scroll-container">
       <ul>
-        <li v-for="monster in monsters" @click="addToCombatList(monster, $event)" :key="monster.id">
+        <li
+          v-for="monster in displayMonsters"
+          @click="addToCombatList(monster, $event)"
+          :key="monster.id"
+        >
           <span class="monster-name">{{ monster.label }}</span>
           <span class="monster-type">{{ monster.type }}</span>
-          <span class="monster-cr">{{ monster.challengeRating }}</span>
+          <span class="monster-cr">{{ monster.challengeRatingDisplay }}</span>
           <span class="monster-hp">{{ monster.hitPoints }}</span>
           <span class="monster-ac">{{ monster.armorClass || '-' }}</span>
           <span class="monster-fav">
             <button
-                @click="addToFavoritesOnly(monster, $event)"
-                class="favorite-btn"
-                title="Add to favorites">
+              @click="addToFavoritesOnly(monster, $event)"
+              class="favorite-btn"
+              title="Add to favorites"
+            >
               ☆
             </button>
           </span>
@@ -205,10 +113,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <AddMonsterModal
-        :is-open="showAddModal"
-        @close="showAddModal = false"
-    />
+    <AddMonsterModal :is-open="showAddModal" @close="showAddModal = false" />
   </div>
 </template>
 
@@ -242,7 +147,7 @@ onMounted(() => {
   background: #357abd;
 }
 
-/* Monster list header med sortering */
+/* Monster list header with sorting */
 .monster-list-header {
   display: grid;
   grid-template-columns: 2fr 1fr 0.7fr 0.7fr 0.7fr 0.5fr;
@@ -293,8 +198,13 @@ li.blink {
 }
 
 @keyframes blink {
-  0%, 100% { background-color: transparent; }
-  50% { background-color: rgba(74, 144, 226, 0.3); }
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(74, 144, 226, 0.3);
+  }
 }
 
 .monster-name {
@@ -340,32 +250,7 @@ li.blink {
   background: #666;
 }
 
-.monsters-scroll-container {
-  max-height: 60vh; /* Justera vid behov */
-  overflow-y: auto;
-}
-
-/* Scroll styling */
-.monsters-scroll-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.monsters-scroll-container::-webkit-scrollbar-track {
-  background: #2a2a2a;
-}
-
-.monsters-scroll-container::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 4px;
-}
-
-.monsters-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #666;
-}
-
-
-
-/* Loading och end states */
+/* Loading and end states */
 .loading-indicator,
 .end-of-results {
   text-align: center;
@@ -397,7 +282,7 @@ li.blink {
   background-color: rgba(255, 145, 0, 0.1);
 }
 
-/* Responsiv design */
+/* Responsive design */
 @media (max-width: 767px) {
   .header {
     flex-direction: column;
@@ -425,7 +310,7 @@ li.blink {
     grid-template-columns: 2fr 1fr 0.5fr 0.5fr 0.4fr;
   }
 
-  /* Dölj AC på små skärmar */
+  /* Hide AC on small screens */
   .monster-list-header span:nth-child(5),
   li .monster-ac {
     display: none;

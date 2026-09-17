@@ -1,24 +1,26 @@
 <script setup>
-import {ref} from 'vue'
-import {removeFromFavorites, saveCombatMonsters, store} from '../store.js'
+import { ref } from 'vue'
 import CreatureModal from '@/modals/CreatureModal.vue'
+import { useFavorites } from '@/composables/useFavorites.js'
+import { useCombat } from '@/composables/useCombat.js'
+
+const { favoriteMonsters, removeFromFavorites } = useFavorites()
+const { addToCombat } = useCombat()
 
 const showCreatureModal = ref(false)
 const selectedCreature = ref(null)
 
-
 const addToCombatList = (monster, event) => {
   event.preventDefault()
-  if (event.type === 'click') {
-    store.combatMonsters.push({...monster, combatId: Date.now(), initiative: 0, done: false})
-    saveCombatMonsters()
+  if (event.type !== 'click') return
 
-    const listItem = event.currentTarget
-    listItem.classList.add('blink')
-    setTimeout(() => {
-      listItem.classList.remove('blink')
-    }, 1000)
-  }
+  addToCombat(monster)
+
+  const listItem = event.currentTarget
+  listItem.classList.add('blink')
+  setTimeout(() => {
+    listItem.classList.remove('blink')
+  }, 1000)
 }
 
 const removeFromFavoriteList = (monster, event) => {
@@ -38,28 +40,15 @@ const closeCreatureModal = () => {
   showCreatureModal.value = false
   selectedCreature.value = null
 }
-
-const exportFavorites = () => {
-  const dataStr = JSON.stringify(store.favoriteMonsters, null, 2)
-  const dataBlob = new Blob([dataStr], {type: 'application/json'})
-
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(dataBlob)
-  link.download = `favorite-monsters-${new Date().toISOString().split('T')[0]}.json`
-  link.click()
-}
 </script>
 
 <template>
   <div class="favorite-container container">
     <div class="header">
       <h1>⭐ Favorite Monsters</h1>
-      <button v-if="store.favoriteMonsters.length > 0" @click="exportFavorites" class="export-btn">
-        📤 Export JSON
-      </button>
     </div>
 
-    <div v-if="store.favoriteMonsters.length === 0" class="empty-state">
+    <div v-if="favoriteMonsters.length === 0" class="empty-state">
       <div class="empty-icon">⭐</div>
       <p>No favorite monsters yet</p>
       <small>Add some from the monster search!</small>
@@ -67,9 +56,11 @@ const exportFavorites = () => {
 
     <div v-else class="favorites-content">
       <div class="favorite-stats">
-        <span class="favorite-count">{{
-            store.favoriteMonsters.length
-          }} favorite{{ store.favoriteMonsters.length !== 1 ? 's' : '' }}</span>
+        <span class="favorite-count"
+          >{{ favoriteMonsters.length }} favorite{{
+            favoriteMonsters.length !== 1 ? 's' : ''
+          }}</span
+        >
         <span class="click-hint">Click to add to combat</span>
       </div>
 
@@ -83,25 +74,29 @@ const exportFavorites = () => {
 
       <div class="favorites-scroll-container">
         <ul>
-          <li v-for="monster in store.favoriteMonsters"
-              @click="addToCombatList(monster, $event)"
-              :key="monster.id"
-              class="favorite-item">
+          <li
+            v-for="monster in favoriteMonsters"
+            @click="addToCombatList(monster, $event)"
+            :key="monster.id"
+            class="favorite-item"
+          >
             <span class="monster-name">{{ monster.label }}</span>
             <span class="monster-type">{{ monster.type }}</span>
-            <span class="monster-cr">{{ monster.challengeRating }}</span>
+            <span class="monster-cr">{{ monster.challengeRatingDisplay }}</span>
             <span class="monster-hp">{{ monster.hitPoints }}</span>
             <span class="monster-actions">
               <button
-                  @click="showCreatureDetails(monster, $event)"
-                  class="info-btn"
-                  title="Show creature details">
+                @click="showCreatureDetails(monster, $event)"
+                class="info-btn"
+                title="Show creature details"
+              >
                 ℹ️
               </button>
               <button
-                  @click="removeFromFavoriteList(monster, $event)"
-                  class="remove-btn"
-                  title="Remove from favorites">
+                @click="removeFromFavoriteList(monster, $event)"
+                class="remove-btn"
+                title="Remove from favorites"
+              >
                 ✕
               </button>
             </span>
@@ -109,9 +104,9 @@ const exportFavorites = () => {
         </ul>
       </div>
       <CreatureModal
-          :show="showCreatureModal"
-          :creature="selectedCreature"
-          @close="closeCreatureModal"
+        :show="showCreatureModal"
+        :creature="selectedCreature"
+        @close="closeCreatureModal"
       />
     </div>
   </div>
@@ -140,24 +135,6 @@ const exportFavorites = () => {
   margin: 0;
   font-size: 1.5rem;
   text-shadow: 0 2px 4px rgba(255, 165, 0, 0.3);
-}
-
-.export-btn {
-  background: linear-gradient(135deg, #ff8c00 0%, #ff6b00 100%);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(255, 140, 0, 0.3);
-}
-
-.export-btn:hover {
-  background: linear-gradient(135deg, #ff9500 0%, #ff7500 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(255, 140, 0, 0.4);
 }
 
 /* Empty state */
@@ -197,7 +174,7 @@ const exportFavorites = () => {
   border: none;
   font-size: 1rem;
   cursor: pointer;
-  color: #4CAF50;
+  color: #4caf50;
   padding: 0.25rem;
   border-radius: 3px;
   transition: all 0.3s ease;
@@ -210,7 +187,7 @@ const exportFavorites = () => {
 
 .info-btn:hover {
   background-color: rgba(76, 175, 80, 0.2);
-  color: #66BB6A;
+  color: #66bb6a;
   transform: scale(1.1);
 }
 
@@ -366,7 +343,8 @@ ul {
 
 /* Blink animation */
 @keyframes blink {
-  0%, 100% {
+  0%,
+  100% {
     background-color: rgba(255, 165, 0, 0.05);
   }
   50% {
@@ -378,16 +356,12 @@ ul {
   animation: blink 1s ease-in-out;
 }
 
-/* Responsiv design */
+/* Responsive design */
 @media (max-width: 767px) {
   .header {
     flex-direction: column;
     gap: 0.75rem;
     text-align: center;
-  }
-
-  .export-btn {
-    width: 100%;
   }
 
   .favorite-stats {
@@ -405,7 +379,7 @@ ul {
     grid-template-columns: 2fr 1fr 0.6fr 0.4fr;
   }
 
-  /* Dölj Type på små skärmar */
+  /* Hide Type on small screens */
   .monster-list-header span:nth-child(2),
   .favorite-item .monster-type {
     display: none;
@@ -421,7 +395,7 @@ ul {
     grid-template-columns: 2fr 0.8fr 0.4fr;
   }
 
-  /* Dölj HP också på riktigt små skärmar */
+  /* Hide HP also on very small screens */
   .monster-list-header span:nth-child(4),
   .favorite-item .monster-hp {
     display: none;

@@ -1,5 +1,5 @@
 <script setup>
-import {computed, ref} from 'vue'
+import { computed, ref } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import TheMonsterList from './components/TheMonsterList.vue'
 import TheFavoriteList from './components/TheFavoriteList.vue'
@@ -25,13 +25,13 @@ const getMainClass = computed(() => {
   const visibleCount = [
     showCombatEncounter.value,
     showMonsterList.value,
-    showFavoriteList.value
+    showFavoriteList.value,
   ].filter(Boolean).length
 
   return {
     'single-column': visibleCount === 1,
     'two-columns': visibleCount === 2,
-    'three-columns': visibleCount === 3
+    'three-columns': visibleCount === 3,
   }
 })
 </script>
@@ -40,19 +40,19 @@ const getMainClass = computed(() => {
   <div class="app">
     <header>
       <AppHeader
-          :show-monster-list="showMonsterList"
-          :show-favorite-list="showFavoriteList"
-          :show-combat-encounter="showCombatEncounter"
-          @toggle-monster-list="toggleMonsterList"
-          @toggle-favorite-list="toggleFavoriteList"
-          @toggle-combat-encounter="toggleCombatEncounter"
+        :show-monster-list="showMonsterList"
+        :show-favorite-list="showFavoriteList"
+        :show-combat-encounter="showCombatEncounter"
+        @toggle-monster-list="toggleMonsterList"
+        @toggle-favorite-list="toggleFavoriteList"
+        @toggle-combat-encounter="toggleCombatEncounter"
       />
     </header>
 
     <main :class="getMainClass">
-      <TheCombatList v-if="showCombatEncounter"/>
-      <TheMonsterList v-if="showMonsterList"/>
-      <TheFavoriteList v-if="showFavoriteList"/>
+      <TheCombatList v-if="showCombatEncounter" />
+      <TheMonsterList v-if="showMonsterList" />
+      <TheFavoriteList v-if="showFavoriteList" />
     </main>
   </div>
 </template>
@@ -97,7 +97,7 @@ main {
   }
 }
 
-/* Större skärmar: bättre hantering av tre kolumner */
+/* Larger screens: three-column layout */
 @media (min-width: 1200px) {
   main.three-columns {
     display: grid;

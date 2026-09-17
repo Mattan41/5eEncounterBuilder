@@ -1,83 +1,29 @@
 <script setup>
-import { ref, watch, onMounted, computed} from 'vue'
+import { onMounted } from 'vue'
+import { useInjectedMonsterSearch } from '@/composables/useMonsterSearch.js'
 
-const props = defineProps({
-  searchQuery: { type: String, default: '' },
-  selectedCR: { type: String, default: '' },
-  selectedCRMax: { type: String, default: '' },
-  selectedType: { type: String, default: '' },
-  selectedDocument: { type: String, default: '' },
-  showAdvancedSearch: { type: Boolean, default: false },
-  isLoading: { type: Boolean, default: false },
-  totalResults: { type: Number, default: 0 }
-})
+// Search state is provided by TheMonsterList; this component only renders it.
+const {
+  searchQuery,
+  selectedCR,
+  selectedCRMax,
+  selectedType,
+  selectedDocument,
+  showAdvancedSearch,
+  isLoading,
+  error,
+  totalResults,
+  availableDocuments,
+  loadingDocuments,
+  crRangeInvalid,
+  crRangeError,
+  hasActiveFilters,
+  searchNow,
+  clearFilters,
+  loadDocuments,
+} = useInjectedMonsterSearch()
 
-const emits = defineEmits([
-  'update:searchQuery',
-  'update:selectedCR',
-  'update:selectedCRMax',
-  'update:selectedType',
-  'update:selectedDocument',
-  'update:showAdvancedSearch',
-  'search'
-])
-
-// Lokala reactive copies
-const localSearchQuery = ref(props.searchQuery)
-const localSelectedCR = ref(props.selectedCR)
-const localSelectedCRMax = ref(props.selectedCRMax)
-const localSelectedType = ref(props.selectedType)
-const localSelectedDocument = ref(props.selectedDocument)
-const localShowAdvanced = ref(props.showAdvancedSearch)
-
-// Källor från API
-const availableDocuments = ref([])
-const loadingDocuments = ref(false)
-
-// Synka med parent
-watch(localSearchQuery, (value) => emits('update:searchQuery', value))
-watch(localSelectedCR, (value) => emits('update:selectedCR', value))
-watch(localSelectedCRMax, (value) => emits('update:selectedCRMax', value))
-watch(localSelectedType, (value) => emits('update:selectedType', value))
-watch(localSelectedDocument, (value) => emits('update:selectedDocument', value))
-watch(localShowAdvanced, (value) => emits('update:showAdvancedSearch', value))
-
-// Hämta källor från API
-const fetchDocuments = async () => {
-  try {
-    loadingDocuments.value = true
-    const response = await fetch('https://api.open5e.com/documents/')
-    const data = await response.json()
-
-    // Skapa listan utan monsters_count eftersom det inte finns i API:et
-    availableDocuments.value = [
-      { value: '', label: 'All Sources' },
-      ...data.results
-          .map(doc => ({
-            value: doc.slug,
-            label: doc.title
-          }))
-          .sort((a, b) => a.label.localeCompare(b.label))
-    ]
-  } catch (error) {
-    console.error('Error fetching documents:', error)
-    // Fallback med rätt slugs från API:et
-    availableDocuments.value = [
-      { value: '', label: 'All Sources' },
-      { value: 'wotc-srd', label: '5e Core Rules' },
-      { value: 'tob', label: 'Tome of Beasts' },
-      { value: 'cc', label: 'Creature Codex' },
-      { value: 'tob2', label: 'Tome of Beasts 2' },
-      { value: 'tob3', label: 'Tome of Beasts 3' },
-      { value: 'menagerie', label: 'Monstrous Menagerie' }
-    ]
-  } finally {
-    loadingDocuments.value = false
-  }
-}
-onMounted(() => {
-  fetchDocuments()
-})
+onMounted(loadDocuments)
 
 const crOptions = [
   { value: '', label: 'Any' },
@@ -114,7 +60,7 @@ const crOptions = [
   { value: '27', label: '27' },
   { value: '28', label: '28' },
   { value: '29', label: '29' },
-  { value: '30', label: '30' }
+  { value: '30', label: '30' },
 ]
 
 const typeOptions = [
@@ -132,79 +78,65 @@ const typeOptions = [
   { value: 'Monstrosity', label: 'Monstrosity' },
   { value: 'Ooze', label: 'Ooze' },
   { value: 'Plant', label: 'Plant' },
-  { value: 'Undead', label: 'Undead' }
+  { value: 'Undead', label: 'Undead' },
 ]
-
-const handleSearch = () => {
-  emits('search')
-}
-
-const clearFilters = () => {
-  localSelectedCR.value = ''
-  localSelectedCRMax.value = ''
-  localSelectedType.value = ''
-  localSelectedDocument.value = ''
-  handleSearch()
-}
-
-const hasActiveFilters = computed(() => {
-  return localSelectedCR.value ||
-      localSelectedCRMax.value ||
-      localSelectedType.value ||
-      localSelectedDocument.value
-})
 </script>
 
 <template>
   <div class="search-section">
     <div class="search-form">
-      <!-- Grundläggande sök -->
+      <!-- Basic search -->
       <div class="search-row">
         <input
-            v-model="localSearchQuery"
-            class="search-input"
-            type="text"
-            placeholder="Search monsters..."
-            @keyup.enter="handleSearch"
-        >
+          v-model="searchQuery"
+          class="search-input"
+          type="text"
+          placeholder="Search monsters..."
+          @keyup.enter="searchNow"
+        />
         <div class="button-group">
-          <button @click="handleSearch" :disabled="isLoading" class="btn btn-primary">
+          <button
+            @click="searchNow"
+            :disabled="isLoading || crRangeInvalid"
+            class="btn btn-primary"
+          >
             {{ isLoading ? 'Searching...' : 'Search' }}
           </button>
           <button
-              @click="localShowAdvanced = !localShowAdvanced"
-              class="btn btn-secondary advanced-toggle"
+            @click="showAdvancedSearch = !showAdvancedSearch"
+            class="btn btn-secondary advanced-toggle"
           >
-            {{ localShowAdvanced ? 'Hide' : 'Filters' }}
+            {{ showAdvancedSearch ? 'Hide' : 'Filters' }}
           </button>
         </div>
       </div>
 
-      <!-- Avancerad sökning -->
-      <div v-if="localShowAdvanced" class="advanced-filters">
+      <!-- Advanced search -->
+      <div v-if="showAdvancedSearch" class="advanced-filters">
         <div class="filter-row">
-          <!-- Challenge Rating Spann -->
+          <!-- Challenge Rating range -->
           <div class="filter-group">
             <label>Challenge Rating</label>
             <div class="cr-range">
-              <select v-model="localSelectedCR">
+              <select v-model="selectedCR">
                 <option v-for="option in crOptions" :key="option.value" :value="option.value">
                   {{ option.label }}
                 </option>
               </select>
               <span>to</span>
-              <select v-model="localSelectedCRMax">
+              <select v-model="selectedCRMax">
                 <option v-for="option in crOptions" :key="option.value" :value="option.value">
                   {{ option.label }}
                 </option>
               </select>
             </div>
+            <small v-if="crRangeInvalid" class="filter-error">{{ crRangeError }}</small>
           </div>
 
           <!-- Monster Type -->
           <div class="filter-group">
             <label>Type</label>
-            <select v-model="localSelectedType">
+            <select v-model="selectedType">
               <option v-for="option in typeOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </option>
@@ -213,32 +145,27 @@ const hasActiveFilters = computed(() => {
         </div>
 
         <div class="filter-row">
-          <!-- Källmaterial -->
+          <!-- Source material -->
           <div class="filter-group">
             <label>Source</label>
-            <select v-model="localSelectedDocument" :disabled="loadingDocuments">
+            <select v-model="selectedDocument" :disabled="loadingDocuments">
               <option v-if="loadingDocuments" value="">Loading sources...</option>
-              <option
-                  v-else
-                  v-for="doc in availableDocuments"
-                  :key="doc.value"
-                  :value="doc.value"
-              >
+              <option v-else v-for="doc in availableDocuments" :key="doc.value" :value="doc.value">
                 {{ doc.label }}
               </option>
             </select>
           </div>
 
-          <!-- Tom kolumn för jämn layout -->
+          <!-- Empty column to keep the layout even -->
           <div class="filter-group"></div>
         </div>
 
         <!-- Filter actions -->
         <div class="filter-actions">
           <button
-              v-if="hasActiveFilters"
-              @click="clearFilters"
-              class="btn btn-secondary clear-filters-btn"
+            v-if="hasActiveFilters"
+            @click="clearFilters"
+            class="btn btn-secondary clear-filters-btn"
           >
             Clear Filters
           </button>
@@ -247,27 +174,27 @@ const hasActiveFilters = computed(() => {
     </div>
 
     <!-- Search results info -->
-    <div v-if="totalResults > 0 || isLoading" class="search-results-info">
+    <div v-if="totalResults > 0 || isLoading || error" class="search-results-info">
       <p v-if="isLoading">Searching...</p>
+      <p v-else-if="error" class="filter-error">{{ error }}</p>
       <p v-else>Found {{ totalResults }} monster{{ totalResults !== 1 ? 's' : '' }}</p>
 
-      <!-- Aktiva filter -->
+      <!-- Active filters -->
       <div v-if="hasActiveFilters" class="active-filters">
         <p><strong>Active filters:</strong></p>
-        <p v-if="localSelectedCR || localSelectedCRMax">
-          CR: {{ localSelectedCR || 'Any' }} - {{ localSelectedCRMax || 'Any' }}
+        <p v-if="selectedCR || selectedCRMax">
+          CR: {{ selectedCR || 'Any' }} - {{ selectedCRMax || 'Any' }}
         </p>
-        <p v-if="localSelectedType">
-          Type: {{ typeOptions.find(t => t.value === localSelectedType)?.label }}
+        <p v-if="selectedType">
+          Type: {{ typeOptions.find((t) => t.value === selectedType)?.label }}
         </p>
-        <p v-if="localSelectedDocument">
-          Source: {{ availableDocuments.find(d => d.value === localSelectedDocument)?.label }}
+        <p v-if="selectedDocument">
+          Source: {{ availableDocuments.find((d) => d.value === selectedDocument)?.label }}
         </p>
       </div>
     </div>
   </div>
 </template>
-
 
 <style scoped>
 .search-section {
@@ -283,17 +210,17 @@ const hasActiveFilters = computed(() => {
 .search-row {
   display: flex;
   gap: 0.5rem;
-  flex-wrap: wrap; /* Lägg till denna */
+  flex-wrap: wrap;
 }
 
 .search-input {
   flex: 1;
-  min-width: 200px; /* Lägg till min-width */
+  min-width: 200px;
 }
 
 .advanced-toggle {
   white-space: nowrap;
-  flex-shrink: 0; /* Förhindra att knappen krymps */
+  flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 .advanced-filters {
@@ -322,6 +249,12 @@ const hasActiveFilters = computed(() => {
   font-size: 0.9rem;
   color: #ccc;
   font-weight: bold;
+}
+
+.filter-error {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .cr-range {
@@ -374,18 +307,18 @@ const hasActiveFilters = computed(() => {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Responsiv design */
+/* Responsive design */
 @media (max-width: 767px) {
   .search-row {
-    flex-direction: column; /* Stack vertikalt på mobil */
+    flex-direction: column; /* Stack vertically on mobile */
   }
 
   .search-input {
-    min-width: unset; /* Ta bort min-width på mobil */
+    min-width: unset; /* Remove min-width on mobile */
   }
 
   .advanced-toggle {
-    white-space: normal; /* Tillåt text-wrapping på mobil */
+    white-space: normal; /* Allow text wrapping on mobile */
   }
 
   .filter-row {
@@ -404,11 +337,11 @@ const hasActiveFilters = computed(() => {
   }
 
   .advanced-filters {
-    padding: 0.75rem; /* Mindre padding på mobil */
+    padding: 0.75rem; /* Less padding on mobile */
   }
 }
 
-/* Extra små skärmar */
+/* Extra small screens */
 @media (max-width: 480px) {
   .search-section {
     margin-bottom: 0.75rem;
@@ -443,4 +376,3 @@ const hasActiveFilters = computed(() => {
   }
 }
 </style>
-
