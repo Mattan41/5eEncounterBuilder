@@ -79,30 +79,76 @@ export const validateImportedState = (raw) => {
 }
 
 /**
+ * Import behaviour for each collection. The combat list is never merged: it is
+ * an ordered roster of independent instances (three goblins with their own HP
+ * and initiative are three valid entries), so only "keep" or "replace" make
+ * sense for it.
+ *
+ * | mode                          | favorites | combat + session |
+ * | ----------------------------- | --------- | ---------------- |
+ * | replace-all                   | replace   | replace          |
+ * | merge-favorites-replace-rest  | merge     | replace          |
+ * | merge-favorites-only          | merge     | keep             |
+ */
+export const IMPORT_MODES = {
+  REPLACE_ALL: 'replace-all',
+  MERGE_FAVORITES_REPLACE_REST: 'merge-favorites-replace-rest',
+  MERGE_FAVORITES_ONLY: 'merge-favorites-only',
+}
+
+const IMPORT_MODE_VALUES = Object.values(IMPORT_MODES)
+
+/** Modes that discard the current combat list/session and therefore need a confirmation. */
+export const isDestructiveImportMode = (mode) => mode !== IMPORT_MODES.MERGE_FAVORITES_ONLY
+
+/**
  * Applies a validated state to the store and persists it.
  * @param {object} state
- * @param {'replace'|'merge'} mode
+ * @param {string} mode One of IMPORT_MODES.
+ * @returns {{addedFavorites: number}}
  */
 const applyStateSnapshot = (state, mode) => {
-  if (mode === 'replace') {
-    replaceFavoriteMonsters(state.favoriteMonsters)
+  const safeMode = IMPORT_MODE_VALUES.includes(mode) ? mode : IMPORT_MODES.MERGE_FAVORITES_ONLY
+  const mergeFavorites = safeMode !== IMPORT_MODES.REPLACE_ALL
+  const replaceCombat = safeMode !== IMPORT_MODES.MERGE_FAVORITES_ONLY
+
+  const addedFavorites = mergeFavorites
+    ? mergeFavoriteMonsters(state.favoriteMonsters)
+    : (replaceFavoriteMonsters(state.favoriteMonsters), 0)
+
+  if (replaceCombat) {
+    // The file's combat entries become the roster as-is; no merging, so freshly
+    // generated combatIds are unnecessary (nothing can collide).
     const combat = state.combatMonsters.map((monster) => normalizeCombatMonster(monster))
     store.combatMonsters.splice(0, store.combatMonsters.length, ...combat)
-  } else {
-    mergeFavoriteMonsters(state.favoriteMonsters)
-    // Fresh combatIds so imported entries never collide with this session.
-    const combat = state.combatMonsters.map((monster) =>
-      normalizeCombatMonster({ ...monster, combatId: undefined }),
-    )
-    store.combatMonsters.push(...combat)
+
+    // Restore the round/turn/started flags, clamped against the resulting list
+    // so a stale index can never point outside combatMonsters.
+    Object.assign(store.combatSession, normalizeCombatSession(state, store.combatMonsters.length))
+
+    saveCombatMonsters()
+    saveCombatSession()
   }
 
-  // Restore the round/turn/started flags, clamped against the resulting list so
-  // a stale index can never point outside combatMonsters.
-  Object.assign(store.combatSession, normalizeCombatSession(state, store.combatMonsters.length))
+  // MERGE_FAVORITES_ONLY intentionally leaves the live combat list/session
+  // completely untouched so an in-progress fight is never disturbed.
 
-  saveCombatMonsters()
-  saveCombatSession()
+  return { addedFavorites }
+}
+
+/** Builds a user-facing summary for the applied import. */
+const buildImportMessage = (mode, addedFavorites) => {
+  if (mode === IMPORT_MODES.MERGE_FAVORITES_ONLY) {
+    return addedFavorites > 0
+      ? `${addedFavorites} new favorite monster(s) added. Current combat list untouched.`
+      : 'No new favorites were added. Current combat list untouched.'
+  }
+
+  if (mode === IMPORT_MODES.MERGE_FAVORITES_REPLACE_REST) {
+    return `Save file loaded and ${addedFavorites} new favorite monster(s) added.`
+  }
+
+  return 'State replaced from save file.'
 }
 
 const importError = ref('')
@@ -150,7 +196,7 @@ export const useAppState = () => {
 
   /**
    * Applies the pending file to the current state.
-   * @param {'replace'|'merge'} mode
+   * @param {string} mode One of IMPORT_MODES.
    */
   const applyImportedState = (mode) => {
     if (!pendingState.value) {
@@ -159,11 +205,8 @@ export const useAppState = () => {
     }
 
     try {
-      applyStateSnapshot(pendingState.value, mode)
-      importMessage.value =
-        mode === 'replace'
-          ? 'State replaced from save file.'
-          : 'Save file merged into the current state.'
+      const { addedFavorites } = applyStateSnapshot(pendingState.value, mode)
+      importMessage.value = buildImportMessage(mode, addedFavorites)
       importError.value = ''
       pendingState.value = null
     } catch (err) {

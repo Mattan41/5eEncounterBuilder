@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue'
-import { useAppState } from '@/composables/useAppState.js'
+import { computed, ref } from 'vue'
+import { IMPORT_MODES, isDestructiveImportMode, useAppState } from '@/composables/useAppState.js'
 
 defineProps({
   showMonsterList: {
@@ -28,8 +28,32 @@ const {
   pendingState,
 } = useAppState()
 
+// Import choices, ordered from safest to most destructive.
+const importModes = [
+  {
+    value: IMPORT_MODES.MERGE_FAVORITES_ONLY,
+    label: 'Merge favorites only',
+    description: 'Keep my current combat list and round untouched',
+  },
+  {
+    value: IMPORT_MODES.MERGE_FAVORITES_REPLACE_REST,
+    label: 'Merge favorites, replace the rest',
+    description: "Take the save file's combat list and round, keep my library",
+  },
+  {
+    value: IMPORT_MODES.REPLACE_ALL,
+    label: 'Replace everything',
+    description: 'Discard my current state and use the save file',
+  },
+]
+
 const fileInput = ref(null)
 const showImportModal = ref(false)
+const selectedMode = ref(IMPORT_MODES.MERGE_FAVORITES_ONLY)
+
+const favoriteCount = computed(() => pendingState.value?.favoriteMonsters?.length || 0)
+const combatCount = computed(() => pendingState.value?.combatMonsters?.length || 0)
+const importRound = computed(() => pendingState.value?.currentRound ?? 1)
 
 const triggerImport = () => {
   importError.value = ''
@@ -43,22 +67,20 @@ const onFileSelected = async (event) => {
   if (!file) return
 
   if (await readImportFile(file)) {
+    selectedMode.value = IMPORT_MODES.MERGE_FAVORITES_ONLY
     showImportModal.value = true
   }
 }
 
-const chooseMerge = () => {
-  applyImportedState('merge')
-  showImportModal.value = false
-}
+const confirmImport = () => {
+  if (isDestructiveImportMode(selectedMode.value)) {
+    const confirmed = window.confirm(
+      'This replaces your current combat list and round. This cannot be undone.',
+    )
+    if (!confirmed) return
+  }
 
-const chooseReplace = () => {
-  const confirmed = window.confirm(
-    'Replace your current combat and favorite lists with the save file? This cannot be undone.',
-  )
-  if (!confirmed) return
-
-  applyImportedState('replace')
+  applyImportedState(selectedMode.value)
   showImportModal.value = false
 }
 
@@ -122,14 +144,25 @@ const cancelImport = () => {
     <div class="import-modal">
       <h2>Import State</h2>
       <p>
-        The save file contains {{ pendingState?.favoriteMonsters?.length || 0 }} favorite monster(s)
-        and {{ pendingState?.combatMonsters?.length || 0 }} combat entr(ies).
+        This save file contains {{ favoriteCount }} favorite monster(s) and {{ combatCount }} combat
+        entr{{ combatCount === 1 ? 'y' : 'ies' }} (round {{ importRound }}).
       </p>
-      <p>Merge adds new entries to the current session. Replace overwrites everything.</p>
+
+      <label v-for="mode in importModes" :key="mode.value" class="import-option">
+        <input type="radio" name="import-mode" :value="mode.value" v-model="selectedMode" />
+        <span class="import-option-text">
+          <strong>{{ mode.label }}</strong>
+          <small>{{ mode.description }}</small>
+        </span>
+      </label>
+
+      <p v-if="isDestructiveImportMode(selectedMode)" class="import-warning">
+        Your current combat list and round will be replaced.
+      </p>
+
       <div class="import-actions">
         <button class="import-btn cancel" @click="cancelImport">Cancel</button>
-        <button class="import-btn merge" @click="chooseMerge">Merge</button>
-        <button class="import-btn replace" @click="chooseReplace">Replace</button>
+        <button class="import-btn primary" @click="confirmImport">Import</button>
       </div>
     </div>
   </div>
@@ -307,19 +340,53 @@ const cancelImport = () => {
   background-color: #777;
 }
 
-.import-btn.merge {
+.import-btn.primary {
   background-color: #4a90e2;
 }
 
-.import-btn.merge:hover {
+.import-btn.primary:hover {
   background-color: #357abd;
 }
 
-.import-btn.replace {
-  background-color: #c0392b;
+.import-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #444;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
 }
 
-.import-btn.replace:hover {
-  background-color: #a93226;
+.import-option:hover {
+  border-color: #666;
+}
+
+.import-option input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.import-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.import-option-text strong {
+  font-size: 0.9rem;
+}
+
+.import-option-text small {
+  color: #aaa;
+  font-size: 0.78rem;
+}
+
+.import-warning {
+  margin: 0.5rem 0 0;
+  color: #ffb347;
+  font-size: 0.85rem;
 }
 </style>
