@@ -53,7 +53,7 @@ export const normalizeMonster = (monster = {}) => {
   const type = typeof monster.type === 'object' ? monster.type?.name || '' : monster.type || ''
   const crValue = monster.challenge_rating ?? monster.challengeRating ?? 0
   const crFloat = parseFloat(crValue) || 0
-  const hitPoints = monster.hit_points ?? monster.hitPoints ?? 0
+  const hitPoints = monster.hitPoints ?? monster.hit_points ?? 0
   const armorClass = monster.armor_class ?? monster.armorClass ?? 0
 
   const normalized = {

@@ -6,6 +6,7 @@
 export const STORAGE_KEYS = {
   combatMonsters: 'combatMonsters',
   favoriteMonsters: 'favoriteMonsters',
+  combatSession: 'combatSession',
 }
 
 const hasStorage = () => typeof localStorage !== 'undefined'

@@ -65,6 +65,7 @@ const {
                 <input
                   type="number"
                   v-model.number="monster.initiative"
+                  @change="saveCombatMonsters"
                   @click.stop
                   class="initiative-input"
                 />

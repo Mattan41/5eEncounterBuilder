@@ -1,20 +1,25 @@
 import { ref } from 'vue'
-import { store, saveCombatMonsters } from '../store.js'
+import { store, saveCombatMonsters, saveCombatSession } from '../store.js'
 import { mergeFavoriteMonsters, replaceFavoriteMonsters } from './useFavorites.js'
 import { normalizeCombatMonster } from '../utils/monsterId.js'
+import { DEFAULT_COMBAT_SESSION, normalizeCombatSession } from '../utils/combatSession.js'
 
 /**
  * Current save-file schema version. Bump this when the exported shape changes
  * and add a matching entry to `migrations` so older files keep working.
+ *
+ * v1 -> v2: added combat session fields (currentRound, currentMonsterIndex,
+ * isCombatActive, hasCombatStarted).
  */
-export const CURRENT_STATE_VERSION = 1
+export const CURRENT_STATE_VERSION = 2
 
 /**
  * Migration functions keyed by the version they upgrade *from*.
  * Each migration receives the parsed state and returns the migrated state.
  */
 export const migrations = {
-  1: (state) => state,
+  // v1 files have no combat session data; default to a fresh, not-started fight.
+  1: (state) => ({ ...state, ...DEFAULT_COMBAT_SESSION }),
 }
 
 /** Converts the reactive store into a plain, serializable snapshot object. */
@@ -23,6 +28,10 @@ export const buildSnapshot = () => ({
   exportedAt: new Date().toISOString(),
   favoriteMonsters: JSON.parse(JSON.stringify(store.favoriteMonsters)),
   combatMonsters: JSON.parse(JSON.stringify(store.combatMonsters)),
+  currentRound: store.combatSession.currentRound,
+  currentMonsterIndex: store.combatSession.currentMonsterIndex,
+  isCombatActive: store.combatSession.isCombatActive,
+  hasCombatStarted: store.combatSession.hasCombatStarted,
 })
 
 /** Serializes the current app state for download. */
@@ -88,7 +97,12 @@ const applyStateSnapshot = (state, mode) => {
     store.combatMonsters.push(...combat)
   }
 
+  // Restore the round/turn/started flags, clamped against the resulting list so
+  // a stale index can never point outside combatMonsters.
+  Object.assign(store.combatSession, normalizeCombatSession(state, store.combatMonsters.length))
+
   saveCombatMonsters()
+  saveCombatSession()
 }
 
 const importError = ref('')
