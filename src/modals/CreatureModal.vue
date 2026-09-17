@@ -4,7 +4,7 @@ import { getOpen5e } from '../api/open5e.js'
 
 const props = defineProps({
   show: Boolean,
-  creature: Object
+  creature: Object,
 })
 
 const emit = defineEmits(['close'])
@@ -15,12 +15,13 @@ const error = ref(null)
 
 // Helper to build a slug from a name (fallback when API key lookup fails)
 const createSlugFromName = (name) => {
-  return name.toLowerCase()
-      .replace(/[^\w\s-]/g, '')      // Remove special characters
-      .replace(/[\s_]+/g, '-')       // Replace spaces with hyphens
-      .replace(/-+/g, '-')           // Remove duplicate hyphens
-      .replace(/^-+|-+$/g, '')       // Strip leading/trailing hyphens
-      .trim()
+  return name
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/[\s_]+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Remove duplicate hyphens
+    .replace(/^-+|-+$/g, '') // Strip leading/trailing hyphens
+    .trim()
 }
 
 // Normalize v2 API response to match template field expectations
@@ -38,31 +39,33 @@ const normalizeV2Creature = (v2) => {
   const savingThrows = v2.saving_throws || {}
   const savingThrowsStr = Object.entries(savingThrows)
     .filter(([, val]) => val !== 0)
-    .map(([key, val]) => `${key.charAt(0).toUpperCase() + key.slice(1)} ${val >= 0 ? '+' : ''}${val}`)
+    .map(
+      ([key, val]) => `${key.charAt(0).toUpperCase() + key.slice(1)} ${val >= 0 ? '+' : ''}${val}`,
+    )
     .join(', ')
 
   return {
     ...v2,
     slug: v2.key,
-    type: typeof v2.type === 'object' ? (v2.type?.name || 'Unknown') : v2.type,
+    type: typeof v2.type === 'object' ? v2.type?.name || 'Unknown' : v2.type,
     subtype: v2.subcategory || v2.subtype || '',
-    strength:     abilityScores.strength     ?? v2.strength,
-    dexterity:    abilityScores.dexterity    ?? v2.dexterity,
+    strength: abilityScores.strength ?? v2.strength,
+    dexterity: abilityScores.dexterity ?? v2.dexterity,
     constitution: abilityScores.constitution ?? v2.constitution,
     intelligence: abilityScores.intelligence ?? v2.intelligence,
-    wisdom:       abilityScores.wisdom       ?? v2.wisdom,
-    charisma:     abilityScores.charisma     ?? v2.charisma,
+    wisdom: abilityScores.wisdom ?? v2.wisdom,
+    charisma: abilityScores.charisma ?? v2.charisma,
     special_abilities: v2.traits || [],
-    actions:           allActions.filter(a => a.action_type === 'ACTION'),
-    legendary_actions: allActions.filter(a => a.action_type === 'LEGENDARY_ACTION'),
-    reactions:         allActions.filter(a => a.action_type === 'REACTION'),
-    armor_desc:        v2.armor_detail || v2.armor_desc || '',
-    document__title:   v2.document?.name || v2.document__title || '',
-    senses:            sensesParts.join(', ') || v2.senses || '',
-    saving_throws:     savingThrowsStr || '',
-    skills:            v2.skill_bonuses || v2.skills || null,
-    damage_resistances:   ri.damage_resistances_display  || v2.damage_resistances  || '',
-    damage_immunities:    ri.damage_immunities_display   || v2.damage_immunities   || '',
+    actions: allActions.filter((a) => a.action_type === 'ACTION'),
+    legendary_actions: allActions.filter((a) => a.action_type === 'LEGENDARY_ACTION'),
+    reactions: allActions.filter((a) => a.action_type === 'REACTION'),
+    armor_desc: v2.armor_detail || v2.armor_desc || '',
+    document__title: v2.document?.name || v2.document__title || '',
+    senses: sensesParts.join(', ') || v2.senses || '',
+    saving_throws: savingThrowsStr || '',
+    skills: v2.skill_bonuses || v2.skills || null,
+    damage_resistances: ri.damage_resistances_display || v2.damage_resistances || '',
+    damage_immunities: ri.damage_immunities_display || v2.damage_immunities || '',
     condition_immunities: ri.condition_immunities_display || v2.condition_immunities || '',
   }
 }
@@ -74,14 +77,12 @@ const findKeyViaAPI = async (name) => {
 
     if (data.results && data.results.length > 0) {
       // Prefer exact match, fall back to first result
-      const exactMatch = data.results.find(m =>
-          m.name.toLowerCase() === name.toLowerCase()
-      )
+      const exactMatch = data.results.find((m) => m.name.toLowerCase() === name.toLowerCase())
 
       const foundMonster = exactMatch || data.results[0]
       return foundMonster.key
     }
-  } catch (error) {
+  } catch {
     // Ignore error, fall back to slug derived from name
   }
 
@@ -103,7 +104,10 @@ const fetchCreatureDetails = async (creature) => {
         // Ensure all UI fields are present
         desc: creature.desc || creature.description || 'Custom monster - no description available',
         actions: creature.actions || [],
-        special_abilities: creature.special_abilities || ['Custom monster - no special abilities available','Nada zipp'],
+        special_abilities: creature.special_abilities || [
+          'Custom monster - no special abilities available',
+          'Nada zipp',
+        ],
         speed: creature.speed || { walk: 30 },
         armor_class: creature.armor_class || 10,
         hit_points: creature.hit_points || 10,
@@ -116,7 +120,7 @@ const fetchCreatureDetails = async (creature) => {
         charisma: creature.charisma || 10,
         size: creature.size || 'Medium',
         type: creature.type || 'Humanoid',
-        alignment: creature.alignment || 'Unknown'
+        alignment: creature.alignment || 'Unknown',
       }
 
       loading.value = false
@@ -140,9 +144,8 @@ const fetchCreatureDetails = async (creature) => {
     // Mark as API monster and normalize v2 fields
     creatureDetails.value = {
       ...normalizeV2Creature(data),
-      source: 'open5e'
+      source: 'open5e',
     }
-
   } catch (err) {
     error.value = `Failed to load creature details: ${err.message}`
   } finally {
@@ -151,18 +154,25 @@ const fetchCreatureDetails = async (creature) => {
 }
 
 // Watch for creature changes
-watch(() => props.creature, (newCreature) => {
-  if (newCreature && props.show) {
-    fetchCreatureDetails(newCreature)
-  }
-}, { immediate: true })
+watch(
+  () => props.creature,
+  (newCreature) => {
+    if (newCreature && props.show) {
+      fetchCreatureDetails(newCreature)
+    }
+  },
+  { immediate: true },
+)
 
 // Watch for modal open/close
-watch(() => props.show, (show) => {
-  if (show && props.creature) {
-    fetchCreatureDetails(props.creature)
-  }
-})
+watch(
+  () => props.show,
+  (show) => {
+    if (show && props.creature) {
+      fetchCreatureDetails(props.creature)
+    }
+  },
+)
 
 // Event handlers
 const closeModal = () => {
@@ -178,12 +188,11 @@ const getAbilityModifier = (score) => {
 const formatSpeed = (speed) => {
   if (typeof speed === 'object' && speed) {
     return Object.entries(speed)
-        .map(([type, value]) => `${type} ${value} ft.`)
-        .join(', ')
+      .map(([type, value]) => `${type} ${value} ft.`)
+      .join(', ')
   }
   return speed || '30 ft.'
 }
-
 </script>
 
 <template>
@@ -208,7 +217,10 @@ const formatSpeed = (speed) => {
           <h4>Available Information:</h4>
           <p><strong>Name:</strong> {{ props.creature.name || 'Unknown' }}</p>
           <p><strong>Type:</strong> {{ props.creature.type || 'Unknown' }}</p>
-          <p><strong>Source:</strong> {{ props.creature.source || props.creature.isCustom ? 'Custom' : 'API' }}</p>
+          <p>
+            <strong>Source:</strong>
+            {{ props.creature.source || props.creature.isCustom ? 'Custom' : 'API' }}
+          </p>
         </div>
 
         <button @click="closeModal" class="error-btn">Close</button>
@@ -219,9 +231,17 @@ const formatSpeed = (speed) => {
         <div class="creature-header">
           <h2>
             {{ creatureDetails.name }}
-            <span v-if="creatureDetails.isCustom || creatureDetails.source === 'custom'" class="custom-badge">Custom</span>
-            <span v-else-if="creatureDetails.source === 'open5e'" class="api-badge">{{ creatureDetails.source }}</span>
-            <span v-if="creatureDetails.source === 'open5e'" class="source-badge">{{ creatureDetails.document__title }}</span>
+            <span
+              v-if="creatureDetails.isCustom || creatureDetails.source === 'custom'"
+              class="custom-badge"
+              >Custom</span
+            >
+            <span v-else-if="creatureDetails.source === 'open5e'" class="api-badge">{{
+              creatureDetails.source
+            }}</span>
+            <span v-if="creatureDetails.source === 'open5e'" class="source-badge">{{
+              creatureDetails.document__title
+            }}</span>
           </h2>
           <p class="creature-subtitle">
             {{ creatureDetails.size }} {{ creatureDetails.type }}
@@ -260,17 +280,23 @@ const formatSpeed = (speed) => {
             <div class="ability">
               <div class="ability-name">DEX</div>
               <div class="ability-score">{{ creatureDetails.dexterity }}</div>
-              <div class="ability-modifier">{{ getAbilityModifier(creatureDetails.dexterity) }}</div>
+              <div class="ability-modifier">
+                {{ getAbilityModifier(creatureDetails.dexterity) }}
+              </div>
             </div>
             <div class="ability">
               <div class="ability-name">CON</div>
               <div class="ability-score">{{ creatureDetails.constitution }}</div>
-              <div class="ability-modifier">{{ getAbilityModifier(creatureDetails.constitution) }}</div>
+              <div class="ability-modifier">
+                {{ getAbilityModifier(creatureDetails.constitution) }}
+              </div>
             </div>
             <div class="ability">
               <div class="ability-name">INT</div>
               <div class="ability-score">{{ creatureDetails.intelligence }}</div>
-              <div class="ability-modifier">{{ getAbilityModifier(creatureDetails.intelligence) }}</div>
+              <div class="ability-modifier">
+                {{ getAbilityModifier(creatureDetails.intelligence) }}
+              </div>
             </div>
             <div class="ability">
               <div class="ability-name">WIS</div>
@@ -286,12 +312,26 @@ const formatSpeed = (speed) => {
         </div>
 
         <!-- Additional Stats (if available) -->
-        <div v-if="creatureDetails.saving_throws || creatureDetails.skills || creatureDetails.damage_resistances" class="additional-stats">
+        <div
+          v-if="
+            creatureDetails.saving_throws ||
+            creatureDetails.skills ||
+            creatureDetails.damage_resistances
+          "
+          class="additional-stats"
+        >
           <div v-if="creatureDetails.saving_throws" class="stat-block">
             <strong>Saving Throws</strong> {{ creatureDetails.saving_throws }}
           </div>
           <div v-if="creatureDetails.skills" class="stat-block">
-            <strong>Skills</strong> {{ typeof creatureDetails.skills === 'object' ? Object.entries(creatureDetails.skills).map(([k,v]) => `${k} +${v}`).join(', ') : creatureDetails.skills }}
+            <strong>Skills</strong>
+            {{
+              typeof creatureDetails.skills === 'object'
+                ? Object.entries(creatureDetails.skills)
+                    .map(([k, v]) => `${k} +${v}`)
+                    .join(', ')
+                : creatureDetails.skills
+            }}
           </div>
           <div v-if="creatureDetails.damage_resistances" class="stat-block">
             <strong>Damage Resistances</strong> {{ creatureDetails.damage_resistances }}
@@ -317,16 +357,26 @@ const formatSpeed = (speed) => {
         </div>
 
         <!-- Special Abilities -->
-        <div v-if="creatureDetails.special_abilities && creatureDetails.special_abilities.length" class="special-abilities-section">
+        <div
+          v-if="creatureDetails.special_abilities && creatureDetails.special_abilities.length"
+          class="special-abilities-section"
+        >
           <h3>Special Abilities</h3>
-          <div v-for="ability in creatureDetails.special_abilities" :key="ability.name" class="ability-block">
+          <div
+            v-for="ability in creatureDetails.special_abilities"
+            :key="ability.name"
+            class="ability-block"
+          >
             <h4>{{ ability.name }}</h4>
             <p v-html="ability.desc"></p>
           </div>
         </div>
 
         <!-- Actions -->
-        <div v-if="creatureDetails.actions && creatureDetails.actions.length" class="actions-section">
+        <div
+          v-if="creatureDetails.actions && creatureDetails.actions.length"
+          class="actions-section"
+        >
           <h3>Actions</h3>
           <div v-for="action in creatureDetails.actions" :key="action.name" class="action-block">
             <h4>{{ action.name }}</h4>
@@ -335,18 +385,32 @@ const formatSpeed = (speed) => {
         </div>
 
         <!-- Legendary Actions -->
-        <div v-if="creatureDetails.legendary_actions && creatureDetails.legendary_actions.length" class="legendary-actions-section">
+        <div
+          v-if="creatureDetails.legendary_actions && creatureDetails.legendary_actions.length"
+          class="legendary-actions-section"
+        >
           <h3>Legendary Actions</h3>
-          <div v-for="action in creatureDetails.legendary_actions" :key="action.name" class="action-block">
+          <div
+            v-for="action in creatureDetails.legendary_actions"
+            :key="action.name"
+            class="action-block"
+          >
             <h4>{{ action.name }}</h4>
             <p v-html="action.desc"></p>
           </div>
         </div>
 
         <!-- Reactions -->
-        <div v-if="creatureDetails.reactions && creatureDetails.reactions.length" class="reactions-section">
+        <div
+          v-if="creatureDetails.reactions && creatureDetails.reactions.length"
+          class="reactions-section"
+        >
           <h3>Reactions</h3>
-          <div v-for="reaction in creatureDetails.reactions" :key="reaction.name" class="action-block">
+          <div
+            v-for="reaction in creatureDetails.reactions"
+            :key="reaction.name"
+            class="action-block"
+          >
             <h4>{{ reaction.name }}</h4>
             <p v-html="reaction.desc"></p>
           </div>
@@ -460,7 +524,8 @@ const formatSpeed = (speed) => {
 }
 
 /* Stats sections */
-.basic-stats, .additional-stats {
+.basic-stats,
+.additional-stats {
   margin: 1.5rem 0;
   padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
@@ -589,8 +654,12 @@ const formatSpeed = (speed) => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Error state */
@@ -613,7 +682,8 @@ const formatSpeed = (speed) => {
   text-align: left;
 }
 
-.error-btn, .close-button {
+.error-btn,
+.close-button {
   background: #ff4444;
   color: white;
   border: none;
@@ -624,7 +694,8 @@ const formatSpeed = (speed) => {
   transition: background-color 0.2s;
 }
 
-.error-btn:hover, .close-button:hover {
+.error-btn:hover,
+.close-button:hover {
   background: #ff6666;
 }
 
