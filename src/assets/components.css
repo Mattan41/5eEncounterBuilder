@@ -1,0 +1,602 @@
+/*
+ * Shared component styles
+ *
+ * Only genuinely reusable primitives live here (buttons, containers, list
+ * rows, modals, scroll areas, states). Component-specific layout stays in the
+ * matching <style scoped> block.
+ */
+
+/* ============================================================
+   Buttons
+   ------------------------------------------------------------
+   Semantic variants so intent is visible at a glance:
+     .btn-primary    accent - the single main action of a view
+     .btn-secondary  neutral - utilities, cancel, filters
+     .btn-danger     destructive - reset, remove
+     .btn-ghost      transparent outline, .is-active marks a toggled-on view
+     .btn-icon       icon-only actions (star, info, remove, close)
+   ============================================================ */
+button,
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  margin: 2px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background-color: var(--surface-input);
+  color: var(--text-strong);
+  font-size: 0.9rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+button:hover:not(:disabled),
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:disabled,
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Primary - accent colour, one per view */
+.btn-primary {
+  background-color: var(--amber);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--amber-hover);
+}
+
+/* Secondary - neutral utility actions */
+.btn-secondary {
+  background-color: var(--border-strong);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #666666;
+}
+
+/* Danger - destructive actions */
+.btn-danger {
+  background-color: var(--crimson);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--danger);
+}
+
+/* Ghost - header view toggles; active state shows what is open */
+.btn-ghost {
+  background-color: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-soft);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background-color: var(--overlay-hover);
+  color: var(--text-strong);
+}
+
+.btn-ghost.is-active,
+.btn-ghost.is-active:hover:not(:disabled) {
+  background-color: var(--amber);
+  border-color: var(--amber);
+  color: var(--text-strong);
+}
+
+/* Icon - icon-only actions */
+.btn-icon {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  margin: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 1.1rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-soft);
+}
+
+.btn-icon:hover:not(:disabled) {
+  background-color: var(--overlay-hover);
+  transform: none;
+}
+
+.btn-icon-favorite {
+  font-size: 1.2rem;
+}
+
+.btn-icon-favorite:hover:not(:disabled) {
+  color: var(--amber);
+  background-color: rgba(255, 145, 0, 0.1);
+}
+
+.btn-icon-favorite.is-active {
+  color: var(--amber);
+}
+
+.btn-icon-remove:hover:not(:disabled) {
+  color: var(--danger-soft);
+  background-color: var(--danger-surface);
+}
+
+.btn-icon-info {
+  color: var(--success);
+}
+
+.btn-icon-info:hover:not(:disabled) {
+  color: var(--success-soft);
+  background-color: var(--success-surface);
+}
+
+.btn-icon-close {
+  font-size: 2rem;
+  line-height: 1;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+}
+
+.btn-icon-close:hover:not(:disabled) {
+  color: var(--text-strong);
+  background-color: var(--overlay-hover);
+}
+
+/* Sizes */
+.btn-small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  margin: 1px;
+}
+
+/* ============================================================
+   Containers
+   ============================================================ */
+.container {
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-panel);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin: 1rem 0;
+  border: 2px solid var(--border-subtle);
+}
+
+/* Panel header: panel title on the left, actions on the right */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* ============================================================
+   List rows
+   ============================================================ */
+li {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--surface-raised);
+  border-radius: var(--radius-md);
+  margin-bottom: 0.5rem;
+  transition: var(--transition-base);
+  color: var(--text-muted);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+li:hover {
+  background-color: #444444;
+  transform: translateY(-2px);
+}
+
+/* Shared sortable column header */
+.monster-list-header {
+  font-weight: bold;
+  margin-bottom: 10px;
+  padding: 0.5rem;
+  color: var(--amber);
+  background-color: var(--overlay-subtle);
+  border-radius: var(--radius-md);
+}
+
+.monster-list-header span {
+  cursor: default;
+  user-select: none;
+  transition: var(--transition-base);
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+}
+
+.monster-list-header span.sortable {
+  cursor: pointer;
+}
+
+.monster-list-header span.sortable:hover {
+  background-color: var(--overlay-hover);
+  color: var(--text-strong);
+}
+
+.monster-list-header span.sorted {
+  background-color: rgba(74, 144, 226, 0.3);
+  color: var(--text-strong);
+}
+
+/* ============================================================
+   Form primitives
+   ============================================================ */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+input,
+select,
+textarea {
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  background-color: var(--surface-input);
+  color: var(--text-strong);
+  font-size: 0.9rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--amber);
+  box-shadow: 0 0 0 2px rgba(255, 145, 0, 0.2);
+}
+
+/* ============================================================
+   Modals
+   ============================================================ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  position: relative;
+  background: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  color: var(--text-strong);
+}
+
+.modal-content.modal-wide {
+  max-width: 800px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  background: var(--surface-overlay);
+  z-index: 1;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 1.5rem;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+}
+
+/* ============================================================
+   Scroll areas
+   ============================================================ */
+.scroll-container {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+  background: var(--surface-overlay);
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #666666;
+}
+
+/* ============================================================
+   Loading and empty states
+   ============================================================ */
+.loading-indicator,
+.end-of-results,
+.empty-state {
+  text-align: center;
+  padding: 1rem;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.empty-state {
+  padding: 2rem;
+}
+
+/* ============================================================
+   Info banners
+   ============================================================ */
+.search-results-info {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: var(--overlay-hover);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--text-soft);
+}
+
+.search-results-info p {
+  margin: 0.25rem 0;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.mb-half {
+  margin-bottom: 0.5rem;
+}
+
+.mb-1 {
+  margin-bottom: 1rem;
+}
+
+.mt-1 {
+  margin-top: 1rem;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.gap-half {
+  gap: 0.5rem;
+}
+
+/* ============================================================
+   Monster tables (search list + favorites list)
+   ------------------------------------------------------------
+   Each table variant owns its column template as a custom property,
+   so the sortable header and the rows always line up. Placed last so
+   it can override the generic `li` row styles above.
+   ============================================================ */
+.monster-table--monsters {
+  --table-columns: 2fr 1fr 0.7fr 0.7fr 0.7fr 0.5fr;
+  --table-highlight: rgba(74, 144, 226, 0.3);
+}
+
+.monster-table--favorites {
+  --table-columns: 2fr 1fr 0.7fr 0.7fr 0.5fr;
+  --table-highlight: rgba(255, 165, 0, 0.3);
+}
+
+.monster-list-header,
+li.monster-row {
+  display: grid;
+  grid-template-columns: var(--table-columns);
+  gap: 0.5rem;
+  align-items: center;
+}
+
+li.monster-row {
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-strong);
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+li.monster-row:hover {
+  background-color: var(--overlay-subtle);
+  transform: none;
+}
+
+li.monster-row--favorite {
+  background: rgba(255, 165, 0, 0.05);
+  border-color: rgba(255, 165, 0, 0.1);
+}
+
+li.monster-row--favorite:hover {
+  background: rgba(255, 165, 0, 0.15);
+  border-color: rgba(255, 165, 0, 0.3);
+  transform: translateX(2px);
+}
+
+li.monster-row--favorite:active {
+  transform: translateX(0) scale(0.98);
+}
+
+/* Brief highlight when a row was just updated */
+@keyframes row-blink {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: var(--table-highlight);
+  }
+}
+
+li.monster-row.blink {
+  animation: row-blink 1s ease-in-out;
+}
+
+.monster-actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Cell alignment - search list */
+.col-name {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.col-type,
+.col-cr,
+.col-hp,
+.col-ac {
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.col-fav {
+  text-align: center;
+}
+
+/* Cell alignment - favorites list */
+.monster-table--favorites .col-name {
+  color: var(--text-strong);
+}
+
+.monster-table--favorites .col-type,
+.monster-table--favorites .col-cr,
+.monster-table--favorites .col-hp {
+  color: #ffcc80;
+  font-size: 0.9rem;
+}
+
+.monster-table--favorites .col-actions {
+  text-align: center;
+}
+
+/* The favorites panel keeps its gold header treatment */
+.monster-table--favorites .monster-list-header {
+  font-weight: 600;
+  color: var(--gold-soft);
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 165, 0, 0.15);
+  border: 1px solid rgba(255, 165, 0, 0.3);
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive column sets */
+@media (max-width: 767px) {
+  .monster-table--monsters {
+    --table-columns: 2fr 1fr 0.6fr 0.6fr 0.6fr 0.4fr;
+  }
+
+  .monster-table--favorites {
+    --table-columns: 2fr 1fr 0.6fr 0.4fr;
+  }
+
+  .monster-list-header,
+  li.monster-row {
+    font-size: 0.9rem;
+  }
+
+  /* Hide Type in the favorites table */
+  .monster-table--favorites .col-type {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .monster-table--monsters {
+    --table-columns: 2fr 1fr 0.5fr 0.5fr 0.4fr;
+  }
+
+  .monster-table--favorites {
+    --table-columns: 2fr 0.8fr 0.4fr;
+  }
+
+  /* Hide AC in the search table ... */
+  .monster-table--monsters .col-ac {
+    display: none;
+  }
+
+  /* ... and HP in the favorites table */
+  .monster-table--favorites .col-hp {
+    display: none;
+  }
+}

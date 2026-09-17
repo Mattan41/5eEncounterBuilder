@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from 'vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseModal from '@/components/base/BaseModal.vue'
 import { useFavorites } from '@/composables/useFavorites.js'
 import { useCombat } from '@/composables/useCombat.js'
 import { formatCR } from '@/utils/formatCR.js'
@@ -122,12 +124,6 @@ const closeModal = () => {
   emit('close')
 }
 
-const handleBackdropClick = (event) => {
-  if (event.target === event.currentTarget) {
-    closeModal()
-  }
-}
-
 // Helper function for ability modifier
 const getAbilityModifier = (score) => {
   const modifier = Math.floor((score - 10) / 2)
@@ -136,278 +132,209 @@ const getAbilityModifier = (score) => {
 </script>
 
 <template>
-  <div v-if="isOpen" class="modal-backdrop" @click="handleBackdropClick">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Add Custom Monster</h2>
-        <button @click="closeModal" class="close-btn">&times;</button>
+  <BaseModal :show="isOpen" title="Add Custom Monster" @close="closeModal">
+    <form class="modal-form" @submit.prevent="saveMonster">
+      <!-- Basic Info -->
+      <div class="form-section">
+        <h3>Basic Information</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="monster-name">Monster Name</label>
+            <input
+              id="monster-name"
+              v-model.trim="newMonster"
+              type="text"
+              placeholder="Enter monster name"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="monster-type">Type</label>
+            <select id="monster-type" v-model="newMonsterType">
+              <option value="Aberration">Aberration</option>
+              <option value="Beast">Beast</option>
+              <option value="Celestial">Celestial</option>
+              <option value="Construct">Construct</option>
+              <option value="Dragon">Dragon</option>
+              <option value="Elemental">Elemental</option>
+              <option value="Fey">Fey</option>
+              <option value="Fiend">Fiend</option>
+              <option value="Giant">Giant</option>
+              <option value="Humanoid">Humanoid</option>
+              <option value="Monstrosity">Monstrosity</option>
+              <option value="Ooze">Ooze</option>
+              <option value="Plant">Plant</option>
+              <option value="Undead">Undead</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="monster-size">Size</label>
+            <select id="monster-size" v-model="newMonsterSize">
+              <option value="Tiny">Tiny</option>
+              <option value="Small">Small</option>
+              <option value="Medium">Medium</option>
+              <option value="Large">Large</option>
+              <option value="Huge">Huge</option>
+              <option value="Gargantuan">Gargantuan</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="monster-alignment">Alignment</label>
+            <select id="monster-alignment" v-model="newMonsterAlignment">
+              <option value="Lawful Good">Lawful Good</option>
+              <option value="Neutral Good">Neutral Good</option>
+              <option value="Chaotic Good">Chaotic Good</option>
+              <option value="Lawful Neutral">Lawful Neutral</option>
+              <option value="Neutral">Neutral</option>
+              <option value="Chaotic Neutral">Chaotic Neutral</option>
+              <option value="Lawful Evil">Lawful Evil</option>
+              <option value="Neutral Evil">Neutral Evil</option>
+              <option value="Chaotic Evil">Chaotic Evil</option>
+              <option value="Unaligned">Unaligned</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      <form class="modal-form" @submit.prevent="saveMonster">
-        <!-- Basic Info -->
-        <div class="form-section">
-          <h3>Basic Information</h3>
+      <!-- Combat Stats -->
+      <div class="form-section">
+        <h3>Combat Statistics</h3>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="monster-name">Monster Name</label>
-              <input
-                id="monster-name"
-                v-model.trim="newMonster"
-                type="text"
-                placeholder="Enter monster name"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="monster-type">Type</label>
-              <select id="monster-type" v-model="newMonsterType">
-                <option value="Aberration">Aberration</option>
-                <option value="Beast">Beast</option>
-                <option value="Celestial">Celestial</option>
-                <option value="Construct">Construct</option>
-                <option value="Dragon">Dragon</option>
-                <option value="Elemental">Elemental</option>
-                <option value="Fey">Fey</option>
-                <option value="Fiend">Fiend</option>
-                <option value="Giant">Giant</option>
-                <option value="Humanoid">Humanoid</option>
-                <option value="Monstrosity">Monstrosity</option>
-                <option value="Ooze">Ooze</option>
-                <option value="Plant">Plant</option>
-                <option value="Undead">Undead</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="monster-size">Size</label>
-              <select id="monster-size" v-model="newMonsterSize">
-                <option value="Tiny">Tiny</option>
-                <option value="Small">Small</option>
-                <option value="Medium">Medium</option>
-                <option value="Large">Large</option>
-                <option value="Huge">Huge</option>
-                <option value="Gargantuan">Gargantuan</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="monster-alignment">Alignment</label>
-              <select id="monster-alignment" v-model="newMonsterAlignment">
-                <option value="Lawful Good">Lawful Good</option>
-                <option value="Neutral Good">Neutral Good</option>
-                <option value="Chaotic Good">Chaotic Good</option>
-                <option value="Lawful Neutral">Lawful Neutral</option>
-                <option value="Neutral">Neutral</option>
-                <option value="Chaotic Neutral">Chaotic Neutral</option>
-                <option value="Lawful Evil">Lawful Evil</option>
-                <option value="Neutral Evil">Neutral Evil</option>
-                <option value="Chaotic Evil">Chaotic Evil</option>
-                <option value="Unaligned">Unaligned</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Combat Stats -->
-        <div class="form-section">
-          <h3>Combat Statistics</h3>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="monster-hp">Hit Points</label>
-              <input
-                id="monster-hp"
-                v-model.number="newMonsterHP"
-                type="number"
-                placeholder="Enter hit points"
-                min="1"
-                max="1000"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="monster-ac">Armor Class</label>
-              <input
-                id="monster-ac"
-                v-model.number="newMonsterAC"
-                type="number"
-                placeholder="Enter AC"
-                min="1"
-                max="30"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="monster-cr">Challenge Rating</label>
-              <select id="monster-cr" v-model="newMonsterCR" required>
-                <option value="0">0</option>
-                <option value="0.125">1/8</option>
-                <option value="0.25">1/4</option>
-                <option value="0.5">1/2</option>
-                <option v-for="i in 30" :key="i" :value="i">{{ i }}</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Ability Scores -->
-        <div class="form-section">
-          <h3>Ability Scores</h3>
-          <div class="abilities-grid">
-            <div v-for="(value, ability) in abilities" :key="ability" class="ability-input">
-              <label :for="`ability-${ability}`">
-                {{ ability.charAt(0).toUpperCase() + ability.slice(1) }}
-              </label>
-              <input
-                :id="`ability-${ability}`"
-                v-model.number="abilities[ability]"
-                type="number"
-                min="1"
-                max="30"
-                required
-              />
-              <small class="ability-modifier">
-                {{ getAbilityModifier(abilities[ability]) }}
-              </small>
-            </div>
-          </div>
-        </div>
-
-        <!-- special_abilities -->
-        <!--        <div class="form-section">-->
-        <!--          <h3>Special Abilities (Optional)</h3>-->
-        <!--          <div class="form-group">-->
-        <!--            <label for="monster-special-abilities">Special Abilities</label>-->
-        <!--            <textarea-->
-        <!--                id="monster-special-abilities"-->
-        <!--                v-model="newMonsterSpecialAbilities"-->
-        <!--                placeholder="List special abilities, one per line..."-->
-        <!--                rows="4"-->
-        <!--            ></textarea>-->
-        <!--          </div>-->
-        <!--        </div>-->
-
-        <div class="form-section">
-          <h3>Special Abilities</h3>
-          <div v-for="(ability, index) in specialAbilities" :key="index" class="ability-input">
-            <input
-              :value="ability"
-              @input="updateAbility(index, $event.target.value)"
-              placeholder="Ability Name"
-            />
-            <button type="button" @click="removeAbility(index)">Remove</button>
-          </div>
-          <button type="button" @click="addAbility">Add Special Ability</button>
-        </div>
-
-        <!-- Description -->
-        <div class="form-section">
-          <h3>Description (Optional)</h3>
+        <div class="form-row">
           <div class="form-group">
-            <label for="monster-description">Description</label>
-            <textarea
-              id="monster-description"
-              v-model="newMonsterDescription"
-              placeholder="Describe your custom monster..."
-              rows="4"
-            ></textarea>
+            <label for="monster-hp">Hit Points</label>
+            <input
+              id="monster-hp"
+              v-model.number="newMonsterHP"
+              type="number"
+              placeholder="Enter hit points"
+              min="1"
+              max="1000"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="monster-ac">Armor Class</label>
+            <input
+              id="monster-ac"
+              v-model.number="newMonsterAC"
+              type="number"
+              placeholder="Enter AC"
+              min="1"
+              max="30"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="monster-cr">Challenge Rating</label>
+            <select id="monster-cr" v-model="newMonsterCR" required>
+              <option value="0">0</option>
+              <option value="0.125">1/8</option>
+              <option value="0.25">1/4</option>
+              <option value="0.5">1/2</option>
+              <option v-for="i in 30" :key="i" :value="i">{{ i }}</option>
+            </select>
           </div>
         </div>
+      </div>
 
-        <!-- Options -->
-        <div class="form-section">
-          <div class="form-group checkbox-group">
-            <label class="checkbox-label">
-              <input v-model="newMonsterInCombat" type="checkbox" />
-              <span class="checkmark"></span>
-              Add to Combat immediately
+      <!-- Ability Scores -->
+      <div class="form-section">
+        <h3>Ability Scores</h3>
+        <div class="abilities-grid">
+          <div v-for="(value, ability) in abilities" :key="ability" class="ability-input">
+            <label :for="`ability-${ability}`">
+              {{ ability.charAt(0).toUpperCase() + ability.slice(1) }}
             </label>
+            <input
+              :id="`ability-${ability}`"
+              v-model.number="abilities[ability]"
+              type="number"
+              min="1"
+              max="30"
+              required
+            />
+            <small class="ability-modifier">
+              {{ getAbilityModifier(abilities[ability]) }}
+            </small>
           </div>
         </div>
+      </div>
 
-        <!-- Actions -->
-        <div class="form-actions">
-          <button type="button" @click="closeModal" class="btn btn-secondary">Cancel</button>
-          <button
-            type="submit"
-            :disabled="!newMonster || newMonsterHP <= 0"
-            class="btn btn-primary"
-          >
-            Save Monster
-          </button>
+      <!-- special_abilities -->
+      <!--        <div class="form-section">-->
+      <!--          <h3>Special Abilities (Optional)</h3>-->
+      <!--          <div class="form-group">-->
+      <!--            <label for="monster-special-abilities">Special Abilities</label>-->
+      <!--            <textarea-->
+      <!--                id="monster-special-abilities"-->
+      <!--                v-model="newMonsterSpecialAbilities"-->
+      <!--                placeholder="List special abilities, one per line..."-->
+      <!--                rows="4"-->
+      <!--            ></textarea>-->
+      <!--          </div>-->
+      <!--        </div>-->
+
+      <div class="form-section">
+        <h3>Special Abilities</h3>
+        <div v-for="(ability, index) in specialAbilities" :key="index" class="ability-input">
+          <input
+            :value="ability"
+            @input="updateAbility(index, $event.target.value)"
+            placeholder="Ability Name"
+          />
+          <BaseButton variant="danger" size="sm" @click="removeAbility(index)">Remove</BaseButton>
         </div>
-      </form>
-    </div>
-  </div>
+        <BaseButton variant="secondary" @click="addAbility">Add Special Ability</BaseButton>
+      </div>
+
+      <!-- Description -->
+      <div class="form-section">
+        <h3>Description (Optional)</h3>
+        <div class="form-group">
+          <label for="monster-description">Description</label>
+          <textarea
+            id="monster-description"
+            v-model="newMonsterDescription"
+            placeholder="Describe your custom monster..."
+            rows="4"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div class="form-section">
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input v-model="newMonsterInCombat" type="checkbox" />
+            <span class="checkmark"></span>
+            Add to Combat immediately
+          </label>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <BaseButton variant="secondary" @click="closeModal">Cancel</BaseButton>
+        <BaseButton type="submit" variant="primary" :disabled="!newMonster || newMonsterHP <= 0">
+          Save Monster
+        </BaseButton>
+      </div>
+    </form>
+  </BaseModal>
 </template>
 
 <style scoped>
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.modal-content {
-  background: #2a2a2a;
-  border-radius: 8px;
-  max-width: 700px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  border: 1px solid #444;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 1.5rem 1rem;
-  border-bottom: 1px solid #444;
-}
-
-.modal-header h2 {
-  margin: 0;
-  color: #fff;
-  font-size: 1.5rem;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 2rem;
-  color: #ccc;
-  cursor: pointer;
-  padding: 0;
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.close-btn:hover {
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
+/* The modal shell (backdrop, header, close button) is shared via BaseModal
+   and components.css. */
 .modal-form {
   padding: 1.5rem;
   display: flex;
@@ -427,7 +354,7 @@ const getAbilityModifier = (score) => {
 
 .form-section h3 {
   margin: 0 0 1rem 0;
-  color: #ffd700;
+  color: var(--gold);
   font-size: 1.1rem;
 }
 
@@ -470,8 +397,8 @@ const getAbilityModifier = (score) => {
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+  border-color: var(--amber);
+  box-shadow: 0 0 0 2px rgba(255, 145, 0, 0.2);
 }
 
 .abilities-grid {
@@ -490,7 +417,7 @@ const getAbilityModifier = (score) => {
 .ability-input label {
   font-size: 0.8rem;
   font-weight: bold;
-  color: #ffd700;
+  color: var(--gold);
   margin-bottom: 0.3rem;
 }
 
@@ -528,53 +455,10 @@ const getAbilityModifier = (score) => {
   gap: 1rem;
   justify-content: flex-end;
   padding-top: 1rem;
-  border-top: 1px solid #444;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-primary {
-  background: #4a90e2;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #357abd;
-}
-
-.btn-primary:disabled {
-  background: #555;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.btn-secondary {
-  background: #666;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: #777;
+  border-top: 1px solid var(--border-subtle);
 }
 
 @media (max-width: 600px) {
-  .modal-content {
-    margin: 1rem;
-    max-height: calc(100vh - 2rem);
-  }
-
-  .modal-header {
-    padding: 1rem;
-  }
-
   .modal-form {
     padding: 1rem;
   }

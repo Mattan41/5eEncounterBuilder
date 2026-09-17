@@ -1,0 +1,62 @@
+/*
+ * Design tokens
+ *
+ * Central source of truth for the app palette, radii and transitions.
+ * Every colour below already existed in the project - they are only named
+ * here so components and shared styles never hard-code hex values again.
+ */
+:root {
+  /* Surfaces */
+  --surface-base: #181818;
+  --surface-sunken: #1a1a1a;
+  --surface-panel: #222222;
+  --surface-overlay: #2a2a2a;
+  --surface-raised: #333333;
+  --surface-input: #444444;
+
+  /* Borders */
+  --border-subtle: #444444;
+  --border-strong: #555555;
+  --border-muted: #292929;
+
+  /* Text */
+  --text-muted: #888888;
+  --text-soft: #cccccc;
+  --text-strong: #ffffff;
+
+  /* Brand */
+  --crimson: #8b0000;
+  --crimson-hover: #5a0000;
+  --purple: #4b0082;
+
+  /* Accent / call to action */
+  --amber: #ff9100;
+  --amber-hover: #ff7b00;
+
+  /* Highlights (combat + favorites headings) */
+  --gold: #ffd700;
+  --gold-soft: #ffa500;
+
+  /* Semantics */
+  --danger: #ff4444;
+  --danger-soft: #ff6b6b;
+  --danger-surface: rgba(255, 68, 68, 0.2);
+  --success: #4caf50;
+  --success-soft: #66bb6a;
+  --success-surface: rgba(76, 175, 80, 0.2);
+  --info: #4a90e2;
+  --info-hover: #357abd;
+
+  /* Interaction surfaces */
+  --overlay-hover: rgba(255, 255, 255, 0.1);
+  --overlay-subtle: rgba(255, 255, 255, 0.05);
+
+  /* Radii */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+
+  /* Motion */
+  --transition-base:
+    background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+}
