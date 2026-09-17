@@ -1,4 +1,5 @@
 <script setup>
+import BaseButton from '@/components/base/BaseButton.vue'
 import { useCombat } from '@/composables/useCombat.js'
 
 // All initiative/round logic lives in useCombat.
@@ -32,16 +33,16 @@ const {
         </transition>
       </div>
       <div class="buttons">
-        <button @click="rollAllInitiatives">Roll Initiative</button>
-        <button @click="sortByInitiative">Sort</button>
-        <button @click="toggleCombat">
+        <BaseButton variant="primary" @click="rollAllInitiatives">Roll Initiative</BaseButton>
+        <BaseButton variant="secondary" @click="sortByInitiative">Sort</BaseButton>
+        <BaseButton variant="ghost" toggle :active="isCombatActive" @click="toggleCombat">
           {{ isCombatActive ? 'Pause Combat' : 'Start Combat' }}
-        </button>
+        </BaseButton>
       </div>
       <div class="sub-buttons" v-show="isCombatActive">
-        <button @click="previousInInitiative">Previous</button>
-        <button @click="nextInInitiative">Next</button>
-        <button @click="resetCombat">Reset combat</button>
+        <BaseButton variant="secondary" @click="previousInInitiative">Previous</BaseButton>
+        <BaseButton variant="secondary" @click="nextInInitiative">Next</BaseButton>
+        <BaseButton variant="danger" @click="resetCombat">Reset combat</BaseButton>
       </div>
     </div>
 
@@ -87,13 +88,15 @@ const {
                 @keyup.enter="monster.damage && applyDamage(monster, monster.damage)"
                 class="damage-input"
               />
-              <button
+              <BaseButton
                 v-if="monster.damage"
-                @click.stop="applyDamage(monster, monster.damage)"
+                variant="primary"
+                size="sm"
                 class="apply-button"
+                @click.stop="applyDamage(monster, monster.damage)"
               >
                 Apply
-              </button>
+              </BaseButton>
             </div>
           </div>
         </li>
@@ -119,7 +122,7 @@ const {
 .header {
   display: grid;
   align-items: center;
-  border-bottom: 3px solid #8b0000;
+  border-bottom: 3px solid var(--crimson);
   padding-bottom: 0.5rem;
   margin-bottom: 0.5rem;
 }
@@ -149,7 +152,7 @@ const {
 h2 {
   position: relative;
   top: -10px;
-  color: #ffd700;
+  color: var(--gold);
   margin: 0;
 }
 
@@ -195,11 +198,11 @@ h2 {
   width: 2rem;
   text-align: center;
   margin-right: 0.5rem;
-  background-color: #444;
-  color: white;
-  border: 1px solid #555;
+  background-color: var(--surface-input);
+  color: var(--text-strong);
+  border: 1px solid var(--border-strong);
   padding: 0.2rem;
-  border-radius: 5px;
+  border-radius: var(--radius-md);
 }
 
 /* D20 and tooltip */

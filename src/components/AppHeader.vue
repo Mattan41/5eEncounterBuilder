@@ -1,5 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseModal from '@/components/base/BaseModal.vue'
 import { IMPORT_MODES, isDestructiveImportMode, useAppState } from '@/composables/useAppState.js'
 import AboutModal from '@/modals/AboutModal.vue'
 
@@ -95,60 +97,92 @@ const cancelImport = () => {
 <template>
   <div class="app-header">
     <div class="header-content">
-      <div class="title-section">
-        <h1 class="app-title">5e Encounter Builder</h1>
-        <p class="api-credit">
-          Powered by
-          <a href="https://open5e.com/" target="_blank" rel="noopener noreferrer" class="api-link">
-            Open5e API
-          </a>
-        </p>
-      </div>
-
-      <div class="button-group">
-        <button @click="$emit('toggle-monster-list')">
-          <span class="button-text">{{ showMonsterList ? 'Hide Search' : 'Search Monsters' }}</span>
-          <span class="button-text-mobile">Monsters</span>
-        </button>
-        <button @click="$emit('toggle-favorite-list')">
-          <span class="button-text">{{
-            showFavoriteList ? 'Hide Favorites' : 'Show Favorites'
-          }}</span>
-          <span class="button-text-mobile">Favorites</span>
-        </button>
-        <button @click="$emit('toggle-combat-encounter')">
-          <span class="button-text">{{ showCombatEncounter ? 'Hide Combat' : 'Show Combat' }}</span>
-          <span class="button-text-mobile">Combat</span>
-        </button>
-        <button @click="exportState">
-          <span class="button-text">Export State</span>
-          <span class="button-text-mobile">Export</span>
-        </button>
-        <button @click="triggerImport">
-          <span class="button-text">Import State</span>
-          <span class="button-text-mobile">Import</span>
-        </button>
-        <button @click="showAbout = true">
+      <div class="header-left">
+        <BaseButton variant="secondary" @click="showAbout = true">
           <span class="button-text">About</span>
           <span class="button-text-mobile">About</span>
-        </button>
-        <input
-          ref="fileInput"
-          type="file"
-          accept="application/json,.json"
-          class="file-input"
-          @change="onFileSelected"
-        />
+        </BaseButton>
+
+        <div class="title-section">
+          <h1 class="app-title">5e Encounter Builder</h1>
+          <p class="api-credit">
+            Powered by
+            <a
+              href="https://open5e.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="api-link"
+            >
+              Open5e API
+            </a>
+          </p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="button-group view-toggles">
+          <BaseButton
+            variant="ghost"
+            toggle
+            :active="showMonsterList"
+            @click="$emit('toggle-monster-list')"
+          >
+            <span class="button-text">{{
+              showMonsterList ? 'Hide Search' : 'Search Monsters'
+            }}</span>
+            <span class="button-text-mobile">Monsters</span>
+          </BaseButton>
+          <BaseButton
+            variant="ghost"
+            toggle
+            :active="showFavoriteList"
+            @click="$emit('toggle-favorite-list')"
+          >
+            <span class="button-text">{{
+              showFavoriteList ? 'Hide Favorites' : 'Show Favorites'
+            }}</span>
+            <span class="button-text-mobile">Favorites</span>
+          </BaseButton>
+          <BaseButton
+            variant="ghost"
+            toggle
+            :active="showCombatEncounter"
+            @click="$emit('toggle-combat-encounter')"
+          >
+            <span class="button-text">{{
+              showCombatEncounter ? 'Hide Combat' : 'Show Combat'
+            }}</span>
+            <span class="button-text-mobile">Combat</span>
+          </BaseButton>
+        </div>
+
+        <div class="button-group utility-actions">
+          <BaseButton variant="secondary" @click="exportState">
+            <span class="button-text">Export State</span>
+            <span class="button-text-mobile">Export</span>
+          </BaseButton>
+          <BaseButton variant="secondary" @click="triggerImport">
+            <span class="button-text">Import State</span>
+            <span class="button-text-mobile">Import</span>
+          </BaseButton>
+        </div>
       </div>
     </div>
+
+    <input
+      ref="fileInput"
+      type="file"
+      accept="application/json,.json"
+      class="file-input"
+      @change="onFileSelected"
+    />
 
     <p v-if="importError" class="import-message import-error">{{ importError }}</p>
     <p v-else-if="importMessage" class="import-message import-success">{{ importMessage }}</p>
   </div>
 
-  <div v-if="showImportModal" class="import-overlay" @click.self="cancelImport">
-    <div class="import-modal">
-      <h2>Import State</h2>
+  <BaseModal :show="showImportModal" title="Import State" @close="cancelImport">
+    <div class="import-body">
       <p>
         This save file contains {{ favoriteCount }} favorite monster(s) and {{ combatCount }} combat
         entr{{ combatCount === 1 ? 'y' : 'ies' }} (round {{ importRound }}).
@@ -167,11 +201,11 @@ const cancelImport = () => {
       </p>
 
       <div class="import-actions">
-        <button class="import-btn cancel" @click="cancelImport">Cancel</button>
-        <button class="import-btn primary" @click="confirmImport">Import</button>
+        <BaseButton variant="secondary" @click="cancelImport">Cancel</BaseButton>
+        <BaseButton variant="primary" @click="confirmImport">Import</BaseButton>
       </div>
     </div>
-  </div>
+  </BaseModal>
 
   <AboutModal :show="showAbout" @close="showAbout = false" />
 </template>
@@ -179,10 +213,10 @@ const cancelImport = () => {
 <style scoped>
 .app-header {
   padding: 1rem;
-  background-color: #333;
-  color: #fff;
-  border: 2px solid #444;
-  border-radius: 8px;
+  background-color: var(--surface-raised);
+  color: var(--text-strong);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -191,6 +225,22 @@ const cancelImport = () => {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+}
+
+/* About button + app title, pinned to the left of the header */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+/* View toggles and state utilities, grouped on the right */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .title-section {
@@ -230,6 +280,12 @@ const cancelImport = () => {
   flex-shrink: 0;
 }
 
+/* Visual separator between view toggles and state utilities */
+.utility-actions {
+  border-left: 1px solid var(--border-subtle);
+  padding-left: 1rem;
+}
+
 /* Responsive button text */
 .button-text {
   display: none;
@@ -255,6 +311,15 @@ const cancelImport = () => {
     text-align: center;
   }
 
+  .header-left {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .header-right {
+    justify-content: center;
+  }
+
   .title-section {
     align-items: center;
   }
@@ -265,6 +330,11 @@ const cancelImport = () => {
 
   .button-group {
     justify-content: center;
+  }
+
+  .utility-actions {
+    border-left: none;
+    padding-left: 0;
   }
 }
 
@@ -285,41 +355,22 @@ const cancelImport = () => {
 }
 
 .import-error {
-  color: #ff6b6b;
+  color: var(--danger-soft);
 }
 
 .import-success {
-  color: #66bb6a;
+  color: var(--success-soft);
 }
 
-.import-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+.import-body {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  flex-direction: column;
+  padding: 1.25rem 1.5rem 1.5rem;
 }
 
-.import-modal {
-  background-color: #2a2a2a;
-  border: 2px solid #444;
-  border-radius: 8px;
-  padding: 1.5rem;
-  max-width: 420px;
-  width: calc(100% - 2rem);
-  color: #fff;
-}
-
-.import-modal h2 {
-  margin: 0 0 0.75rem;
-  font-size: 1.25rem;
-}
-
-.import-modal p {
+.import-body > p {
   margin: 0 0 0.5rem;
-  color: #ccc;
+  color: var(--text-soft);
   font-size: 0.9rem;
 }
 
@@ -330,46 +381,20 @@ const cancelImport = () => {
   margin-top: 1rem;
 }
 
-.import-btn {
-  border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  cursor: pointer;
-  color: #fff;
-  transition: background-color 0.2s ease;
-}
-
-.import-btn.cancel {
-  background-color: #666;
-}
-
-.import-btn.cancel:hover {
-  background-color: #777;
-}
-
-.import-btn.primary {
-  background-color: #4a90e2;
-}
-
-.import-btn.primary:hover {
-  background-color: #357abd;
-}
-
 .import-option {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
   padding: 0.6rem 0.75rem;
   margin-bottom: 0.5rem;
-  border: 1px solid #444;
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   cursor: pointer;
   transition: border-color 0.2s ease;
 }
 
 .import-option:hover {
-  border-color: #666;
+  border-color: #666666;
 }
 
 .import-option input {
@@ -388,7 +413,7 @@ const cancelImport = () => {
 }
 
 .import-option-text small {
-  color: #aaa;
+  color: #aaaaaa;
   font-size: 0.78rem;
 }
 

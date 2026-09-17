@@ -1,8 +1,12 @@
 <script setup>
 import { ref } from 'vue'
+import BaseIconButton from '@/components/base/BaseIconButton.vue'
+import MonsterListHeader from '@/components/base/MonsterListHeader.vue'
+import MonsterRow from '@/components/base/MonsterRow.vue'
 import CreatureModal from '@/modals/CreatureModal.vue'
 import { useFavorites } from '@/composables/useFavorites.js'
 import { useCombat } from '@/composables/useCombat.js'
+import { useRowFeedback } from '@/composables/useRowFeedback.js'
 
 const { favoriteMonsters, removeFromFavorites } = useFavorites()
 const { addToCombat } = useCombat()
@@ -10,27 +14,35 @@ const { addToCombat } = useCombat()
 const showCreatureModal = ref(false)
 const selectedCreature = ref(null)
 
-const addToCombatList = (monster, event) => {
-  event.preventDefault()
-  if (event.type !== 'click') return
+const { flash: flashRow, isFlashing: isRowFlashing } = useRowFeedback()
 
+const columns = [
+  { key: 'name', label: 'Name', className: 'col-name' },
+  { key: 'type', label: 'Type', className: 'col-type' },
+  { key: 'cr', label: 'CR', className: 'col-cr' },
+  { key: 'hp', label: 'HP', className: 'col-hp' },
+  { key: 'actions', label: 'Actions', className: 'col-actions' },
+]
+
+const rowColumns = (monster) => [
+  { key: 'name', value: monster.label, className: 'col-name' },
+  { key: 'type', value: monster.type, className: 'col-type' },
+  { key: 'cr', value: monster.challengeRatingDisplay, className: 'col-cr' },
+  { key: 'hp', value: monster.hitPoints, className: 'col-hp' },
+]
+
+// Clicking a row adds the monster to the combat list.
+const addToCombatList = (monster) => {
   addToCombat(monster)
-
-  const listItem = event.currentTarget
-  listItem.classList.add('blink')
-  setTimeout(() => {
-    listItem.classList.remove('blink')
-  }, 1000)
+  flashRow(monster.id)
 }
 
 const removeFromFavoriteList = (monster, event) => {
-  event.preventDefault()
   event.stopPropagation()
   removeFromFavorites(monster)
 }
 
 const showCreatureDetails = (monster, event) => {
-  event.preventDefault()
   event.stopPropagation()
   selectedCreature.value = monster
   showCreatureModal.value = true
@@ -43,7 +55,7 @@ const closeCreatureModal = () => {
 </script>
 
 <template>
-  <div class="favorite-container container">
+  <div class="favorite-container container monster-table--favorites">
     <div class="header">
       <h1>⭐ Favorite Monsters</h1>
     </div>
@@ -64,43 +76,35 @@ const closeCreatureModal = () => {
         <span class="click-hint">Click to add to combat</span>
       </div>
 
-      <div class="monster-list-header">
-        <span>Name</span>
-        <span>Type</span>
-        <span>CR</span>
-        <span>HP</span>
-        <span>Actions</span>
-      </div>
+      <MonsterListHeader :columns="columns" />
 
-      <div class="favorites-scroll-container">
+      <div class="scroll-container favorites-scroll-container">
         <ul>
-          <li
+          <MonsterRow
             v-for="monster in favoriteMonsters"
-            @click="addToCombatList(monster, $event)"
             :key="monster.id"
-            class="favorite-item"
+            variant="favorite"
+            :columns="rowColumns(monster)"
+            :highlighted="isRowFlashing(monster.id)"
+            @select="addToCombatList(monster)"
           >
-            <span class="monster-name">{{ monster.label }}</span>
-            <span class="monster-type">{{ monster.type }}</span>
-            <span class="monster-cr">{{ monster.challengeRatingDisplay }}</span>
-            <span class="monster-hp">{{ monster.hitPoints }}</span>
-            <span class="monster-actions">
-              <button
+            <template #actions>
+              <BaseIconButton
+                tone="info"
+                :label="`Show ${monster.label} details`"
                 @click="showCreatureDetails(monster, $event)"
-                class="info-btn"
-                title="Show creature details"
               >
                 ℹ️
-              </button>
-              <button
+              </BaseIconButton>
+              <BaseIconButton
+                tone="remove"
+                :label="`Remove ${monster.label} from favorites`"
                 @click="removeFromFavoriteList(monster, $event)"
-                class="remove-btn"
-                title="Remove from favorites"
               >
                 ✕
-              </button>
-            </span>
-          </li>
+              </BaseIconButton>
+            </template>
+          </MonsterRow>
         </ul>
       </div>
       <CreatureModal
@@ -161,36 +165,6 @@ const closeCreatureModal = () => {
   font-style: italic;
 }
 
-/* Actions buttons */
-.monster-actions {
-  display: flex;
-  gap: 0.25rem;
-  justify-content: center;
-  align-items: center;
-}
-
-.info-btn {
-  background: none;
-  border: none;
-  font-size: 1rem;
-  cursor: pointer;
-  color: #4caf50;
-  padding: 0.25rem;
-  border-radius: 3px;
-  transition: all 0.3s ease;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.info-btn:hover {
-  background-color: rgba(76, 175, 80, 0.2);
-  color: #66bb6a;
-  transform: scale(1.1);
-}
-
 /* Favorites content */
 .favorites-content {
   flex: 1;
@@ -223,137 +197,10 @@ const closeCreatureModal = () => {
   font-style: italic;
 }
 
-/* List header */
-.monster-list-header {
-  display: grid;
-  grid-template-columns: 2fr 1fr 0.7fr 0.7fr 0.5fr;
-  gap: 0.5rem;
-  font-weight: 600;
-  color: #ffa500;
-  margin-bottom: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  background: rgba(255, 165, 0, 0.15);
-  border-radius: 4px;
-  border: 1px solid rgba(255, 165, 0, 0.3);
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  letter-spacing: 0.5px;
-}
-
-/* Scroll container */
+/* Scroll container: sizing only, the shared .scroll-container handles the rest */
 .favorites-scroll-container {
   flex: 1;
-  overflow-y: auto;
   min-height: 200px;
-  max-height: 60vh;
-}
-
-.favorites-scroll-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.favorites-scroll-container::-webkit-scrollbar-track {
-  background: #2a2419;
-  border-radius: 4px;
-}
-
-.favorites-scroll-container::-webkit-scrollbar-thumb {
-  background: #8b6914;
-  border-radius: 4px;
-}
-
-.favorites-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #b8861b;
-}
-
-/* List styling */
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.favorite-item {
-  display: grid;
-  grid-template-columns: 2fr 1fr 0.7fr 0.7fr 0.5fr;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  margin-bottom: 0.25rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  border: 1px solid rgba(255, 165, 0, 0.1);
-  background: rgba(255, 165, 0, 0.05);
-}
-
-.favorite-item:hover {
-  background: rgba(255, 165, 0, 0.15);
-  border-color: rgba(255, 165, 0, 0.3);
-  transform: translateX(2px);
-}
-
-.favorite-item:active {
-  transform: translateX(0px) scale(0.98);
-}
-
-/* Monster info styling */
-.monster-name {
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
-  color: #fff;
-}
-
-.monster-type,
-.monster-cr,
-.monster-hp {
-  text-align: center;
-  color: #ffcc80;
-  font-size: 0.9rem;
-}
-
-.monster-actions {
-  text-align: center;
-}
-
-/* Remove button */
-.remove-btn {
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  cursor: pointer;
-  color: #ff6b6b;
-  padding: 0.25rem;
-  border-radius: 3px;
-  transition: all 0.3s ease;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.remove-btn:hover {
-  background-color: rgba(255, 107, 107, 0.2);
-  color: #ff8a8a;
-  transform: scale(1.1);
-}
-
-/* Blink animation */
-@keyframes blink {
-  0%,
-  100% {
-    background-color: rgba(255, 165, 0, 0.05);
-  }
-  50% {
-    background-color: rgba(255, 165, 0, 0.3);
-  }
-}
-
-.blink {
-  animation: blink 1s ease-in-out;
 }
 
 /* Responsive design */
@@ -368,37 +215,6 @@ ul {
     flex-direction: column;
     gap: 0.5rem;
     text-align: center;
-  }
-
-  .monster-list-header {
-    grid-template-columns: 2fr 1fr 0.6fr 0.4fr;
-    font-size: 0.8rem;
-  }
-
-  .favorite-item {
-    grid-template-columns: 2fr 1fr 0.6fr 0.4fr;
-  }
-
-  /* Hide Type on small screens */
-  .monster-list-header span:nth-child(2),
-  .favorite-item .monster-type {
-    display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .monster-list-header {
-    grid-template-columns: 2fr 0.8fr 0.4fr;
-  }
-
-  .favorite-item {
-    grid-template-columns: 2fr 0.8fr 0.4fr;
-  }
-
-  /* Hide HP also on very small screens */
-  .monster-list-header span:nth-child(4),
-  .favorite-item .monster-hp {
-    display: none;
   }
 }
 </style>
