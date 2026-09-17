@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { IMPORT_MODES, isDestructiveImportMode, useAppState } from '@/composables/useAppState.js'
+import AboutModal from '@/modals/AboutModal.vue'
 
 defineProps({
   showMonsterList: {
@@ -49,6 +50,7 @@ const importModes = [
 
 const fileInput = ref(null)
 const showImportModal = ref(false)
+const showAbout = ref(false)
 const selectedMode = ref(IMPORT_MODES.MERGE_FAVORITES_ONLY)
 
 const favoriteCount = computed(() => pendingState.value?.favoriteMonsters?.length || 0)
@@ -126,6 +128,10 @@ const cancelImport = () => {
           <span class="button-text">Import State</span>
           <span class="button-text-mobile">Import</span>
         </button>
+        <button @click="showAbout = true">
+          <span class="button-text">About</span>
+          <span class="button-text-mobile">About</span>
+        </button>
         <input
           ref="fileInput"
           type="file"
@@ -166,6 +172,8 @@ const cancelImport = () => {
       </div>
     </div>
   </div>
+
+  <AboutModal :show="showAbout" @close="showAbout = false" />
 </template>
 
 <style scoped>
