@@ -1,130 +1,26 @@
 <script setup>
-import {saveCombatMonsters, store} from '../store.js'
-import {computed, ref} from 'vue'
+import { useCombat } from '@/composables/useCombat.js'
 
-const startX = ref(0)
-const endX = ref(0)
-const isCombatActive = ref(false)
-const currentRound = ref(1)
-const currentMonsterIndex = ref(0)
-const hasCombatStarted = ref(false)
-const isRoundBlinking = ref(false)
-
-
-const removeFromCombatList = (monster, event) => {
-  event.preventDefault()
-  const index = store.combatMonsters.findIndex(m => m.combatId === monster.combatId)
-  if (index !== -1) {
-    store.combatMonsters.splice(index, 1)
-  }
-  saveCombatMonsters()
-}
-
-//start/pause combat
-const toggleCombat = () => {
-  isCombatActive.value = !isCombatActive.value
-  if (isCombatActive.value && !hasCombatStarted.value) {
-    currentMonsterIndex.value = store.combatMonsters.reduce((maxIndex, monster, index, monsters) =>
-        monster.initiative > monsters[maxIndex].initiative ? index : maxIndex, 0)
-    hasCombatStarted.value = true
-  }
-}
-
-const toggleDone = (monster) => {
-  monster.done = !monster.done
-}
-
-const rollInitiative = (monster) => {
-  monster.initiative = Math.floor(Math.random() * 20) + 1
-}
-
-const rollAllInitiatives = () => {
-  store.combatMonsters.forEach(monster => {
-    rollInitiative(monster)
-  })
-  saveCombatMonsters()
-}
-
-const sortByInitiative = () => {
-  store.combatMonsters.sort((a, b) => b.initiative - a.initiative)
-  saveCombatMonsters()
-}
-
-const sortedIndices = computed(() => {
-  return store.combatMonsters
-      .map((monster, index) => ({index, initiative: monster.initiative}))
-      .sort((a, b) => b.initiative - a.initiative)
-      .map(item => item.index)
-})
-
-const nextInInitiative = () => {
-  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value)
-  if (currentIndex < sortedIndices.value.length - 1) {
-    currentMonsterIndex.value = sortedIndices.value[currentIndex + 1]
-  } else {
-    triggerRoundBlink(() => {
-      currentMonsterIndex.value = sortedIndices.value[0]
-      currentRound.value++
-    })
-  }
-  saveCombatMonsters()
-}
-
-const previousInInitiative = () => {
-  const currentIndex = sortedIndices.value.indexOf(currentMonsterIndex.value)
-  if (currentIndex > 0) {
-    currentMonsterIndex.value = sortedIndices.value[currentIndex - 1]
-  } else {
-    triggerRoundBlink(() => {
-      currentMonsterIndex.value = sortedIndices.value[sortedIndices.value.length - 1]
-      currentRound.value = Math.max(1, currentRound.value - 1)
-    })
-  }
-  saveCombatMonsters()
-}
-
-const triggerRoundBlink = (callback) => {
-  isRoundBlinking.value = true
-  setTimeout(() => {
-    if (callback) callback()
-    isRoundBlinking.value = false
-  }, 500)
-}
-
-const resetCombat = () => {
-  currentRound.value = 1
-  currentMonsterIndex.value = 0
-  isCombatActive.value = false
-  hasCombatStarted.value = false
-  store.combatMonsters.forEach(monster => {
-    monster.initiative = 0
-    monster.done = false
-    monster.hitPoints = monster.originalHitPoints // Reset HP to original value
-  })
-  saveCombatMonsters()
-}
-
-const applyDamage = (monster, damage) => {
-  monster.hitPoints -= damage
-  monster.done = monster.hitPoints <= 0
-  monster.damage = null // Reset the input field
-  saveCombatMonsters()
-}
-
-const handleTouchStart = (event) => {
-  startX.value = event.touches[0].clientX
-}
-
-const handleTouchEnd = (monster, event) => {
-  endX.value = event.changedTouches[0].clientX
-  if (startX.value < endX.value - 50) {
-    monster.swipedRight = true
-    setTimeout(() => {
-      removeFromCombatList(monster, event)
-      saveCombatMonsters()
-    }, 50)
-  }
-}
+// All initiative/round logic lives in useCombat.
+const {
+  combatMonsters,
+  removeFromCombatList,
+  toggleCombat,
+  toggleDone,
+  rollInitiative,
+  rollAllInitiatives,
+  sortByInitiative,
+  nextInInitiative,
+  previousInInitiative,
+  resetCombat,
+  applyDamage,
+  handleTouchStart,
+  handleTouchEnd,
+  isCombatActive,
+  currentRound,
+  currentMonsterIndex,
+  isRoundBlinking,
+} = useCombat()
 </script>
 <template>
   <div class="combat-container container">
@@ -138,33 +34,43 @@ const handleTouchEnd = (monster, event) => {
       <div class="buttons">
         <button @click="rollAllInitiatives">Roll Initiative</button>
         <button @click="sortByInitiative">Sort</button>
-        <button @click="toggleCombat">{{ isCombatActive ? 'Pause Combat' : 'Start Combat' }}</button>
+        <button @click="toggleCombat">
+          {{ isCombatActive ? 'Pause Combat' : 'Start Combat' }}
+        </button>
       </div>
       <div class="sub-buttons" v-show="isCombatActive">
-        <button @click="nextInInitiative">Next</button>
         <button @click="previousInInitiative">Previous</button>
+        <button @click="nextInInitiative">Next</button>
         <button @click="resetCombat">Reset combat</button>
       </div>
     </div>
 
     <ol>
       <transition-group name="swipe" tag="ol">
-        <li v-for="(monster, index) in store.combatMonsters" :key="monster.combatId"
-            @click="toggleDone(monster)"
-            @contextmenu="removeFromCombatList(monster, $event)"
-            @touchstart="handleTouchStart"
-            @touchend="handleTouchEnd(monster, $event)"
-            :class="{
-              'swipe-right': monster.swipedRight,
-              'current-monster': isCombatActive && index === currentMonsterIndex
-            }">
-
+        <li
+          v-for="(monster, index) in combatMonsters"
+          :key="monster.combatId"
+          @click="toggleDone(monster)"
+          @contextmenu="removeFromCombatList(monster, $event)"
+          @touchstart="handleTouchStart"
+          @touchend="handleTouchEnd(monster, $event)"
+          :class="{
+            'swipe-right': monster.swipedRight,
+            'current-monster': isCombatActive && index === currentMonsterIndex,
+          }"
+        >
           <div class="monster-info">
-            <div class="monster-header" :class="{strikeout: monster.done }">
+            <div class="monster-header" :class="{ strikeout: monster.done }">
               <div class="initiative-group">
-                <input type="number" v-model.number="monster.initiative" @click.stop class="initiative-input"/>
+                <input
+                  type="number"
+                  v-model.number="monster.initiative"
+                  @change="saveCombatMonsters"
+                  @click.stop
+                  class="initiative-input"
+                />
                 <div class="roll-initiative" @click.stop="rollInitiative(monster)">
-                  <img src="@/assets/d20.webp" alt="Roll initiative" class="d20-image"/>
+                  <img src="@/assets/d20.webp" alt="Roll initiative" class="d20-image" />
                   <span class="roll-text">Roll initiative</span>
                 </div>
               </div>
@@ -173,9 +79,19 @@ const handleTouchEnd = (monster, event) => {
             </div>
 
             <div class="damage-container">
-              <input type="number" v-model.number="monster.damage" placeholder="Damage" @click.stop
-                     @keyup.enter="monster.damage && applyDamage(monster, monster.damage)" class="damage-input"/>
-              <button v-if="monster.damage" @click.stop="applyDamage(monster, monster.damage)" class="apply-button">
+              <input
+                type="number"
+                v-model.number="monster.damage"
+                placeholder="Damage"
+                @click.stop
+                @keyup.enter="monster.damage && applyDamage(monster, monster.damage)"
+                class="damage-input"
+              />
+              <button
+                v-if="monster.damage"
+                @click.stop="applyDamage(monster, monster.damage)"
+                class="apply-button"
+              >
                 Apply
               </button>
             </div>
@@ -189,11 +105,13 @@ const handleTouchEnd = (monster, event) => {
 </template>
 <style scoped>
 /* Transition animations */
-.round-blink-enter-active, .round-blink-leave-active {
+.round-blink-enter-active,
+.round-blink-leave-active {
   transition: opacity 0.5s;
 }
 
-.round-blink-enter-from, .round-blink-leave-to {
+.round-blink-enter-from,
+.round-blink-leave-to {
   opacity: 0;
 }
 
@@ -201,7 +119,7 @@ const handleTouchEnd = (monster, event) => {
 .header {
   display: grid;
   align-items: center;
-  border-bottom: 3px solid #8B0000;
+  border-bottom: 3px solid #8b0000;
   padding-bottom: 0.5rem;
   margin-bottom: 0.5rem;
 }
@@ -231,7 +149,7 @@ const handleTouchEnd = (monster, event) => {
 h2 {
   position: relative;
   top: -10px;
-  color: #FFD700;
+  color: #ffd700;
   margin: 0;
 }
 
@@ -354,7 +272,7 @@ h2 {
 
 .current-monster {
   background-color: rgba(255, 255, 0, 0.2);
-  border-left: 4px solid #FFD700;
+  border-left: 4px solid #ffd700;
 }
 
 /* Swipe animation */
@@ -369,7 +287,7 @@ h2 {
   }
 }
 
-/* Responsive design - den gamla approachen */
+/* Responsive design */
 @media (min-width: 768px) {
   .initiative-group {
     font-size: 1rem;
